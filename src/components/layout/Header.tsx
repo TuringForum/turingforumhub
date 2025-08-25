@@ -17,38 +17,82 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Home, BookOpen, User, Edit2, LogOut } from 'lucide-react';
+import { Home, BookOpen, User, Edit2, LogOut, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 export const Header = () => {
   const { user, signOut, loading } = useAuth();
-  const { profile, updateProfile } = useProfile();
+  const { profile, updateProfile, uploadAvatar } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [nicknameValue, setNicknameValue] = useState('');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    nickname: '',
+    bio: '',
+  });
 
   const handleSignOut = async () => {
     await signOut();
   };
 
-  const handleEditNickname = () => {
-    setNicknameValue(profile?.nickname || '');
-    setIsEditingNickname(true);
+  const handleEditProfile = () => {
+    setFormData({
+      nickname: profile?.nickname || '',
+      bio: profile?.bio || '',
+    });
+    setIsEditingProfile(true);
   };
 
-  const handleSaveNickname = async () => {
-    if (nicknameValue.trim()) {
-      await updateProfile({ nickname: nicknameValue.trim() });
+  const handleSaveProfile = async () => {
+    const result = await updateProfile(formData);
+    if (!result?.error) {
+      setIsEditingProfile(false);
     }
-    setIsEditingNickname(false);
   };
 
   const handleCancelEdit = () => {
-    setIsEditingNickname(false);
-    setNicknameValue('');
+    setIsEditingProfile(false);
+    setFormData({ nickname: '', bio: '' });
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "File size must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    const avatarUrl = await uploadAvatar(file);
+    
+    if (avatarUrl) {
+      await updateProfile({ avatar_url: avatarUrl });
+    }
+    
+    setUploading(false);
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -150,56 +194,95 @@ export const Header = () => {
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 glass">
-                  <div className="p-4 space-y-3">
+                <DropdownMenuContent align="end" className="w-80 glass">
+                  <div className="p-4 space-y-4">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                          {displayName.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        {isEditingNickname ? (
-                          <div className="space-y-2">
-                            <Input
-                              value={nicknameValue}
-                              onChange={(e) => setNicknameValue(e.target.value)}
-                              placeholder="Enter nickname"
-                              className="h-8"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSaveNickname();
-                                if (e.key === 'Escape') handleCancelEdit();
-                              }}
-                              autoFocus
-                            />
-                            <div className="flex space-x-2">
-                              <Button size="sm" onClick={handleSaveNickname} className="h-6 px-2 text-xs">
-                                Save
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={handleCancelEdit} className="h-6 px-2 text-xs">
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <p className="font-medium">{displayName}</p>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleEditNickname}
-                                className="h-6 w-6 p-0 hover:bg-accent/50"
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <div className="relative">
+                        <Avatar className="h-16 w-16">
+                          <AvatarImage src={profile?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                            {displayName.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <label
+                          htmlFor="avatar-upload-header"
+                          className="absolute bottom-0 right-0 p-1 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
+                        >
+                          <Camera className="w-3 h-3" />
+                          <input
+                            id="avatar-upload-header"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAvatarUpload}
+                            className="hidden"
+                            disabled={uploading}
+                          />
+                        </label>
+                        {uploading && (
+                          <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                           </div>
                         )}
                       </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{displayName}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
                     </div>
+
+                    {isEditingProfile ? (
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="nickname-header" className="text-xs">Nickname</Label>
+                          <Input
+                            id="nickname-header"
+                            value={formData.nickname}
+                            onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                            placeholder="Enter nickname"
+                            className="h-8"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="bio-header" className="text-xs">Bio</Label>
+                          <Textarea
+                            id="bio-header"
+                            value={formData.bio}
+                            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                            placeholder="Tell us about yourself..."
+                            className="min-h-[60px] text-xs"
+                            rows={3}
+                          />
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button size="sm" onClick={handleSaveProfile} className="h-7 px-3 text-xs flex-1">
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={handleCancelEdit} className="h-7 px-3 text-xs flex-1">
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {profile?.bio && (
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Bio</Label>
+                            <p className="text-xs text-muted-foreground mt-1 p-2 rounded bg-muted/30">
+                              {profile.bio}
+                            </p>
+                          </div>
+                        )}
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={handleEditProfile}
+                          className="w-full h-8 text-xs"
+                        >
+                          <Edit2 className="w-3 h-3 mr-2" />
+                          Edit Profile
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   <DropdownMenuItem onClick={handleSignOut} disabled={loading} className="text-destructive focus:text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
