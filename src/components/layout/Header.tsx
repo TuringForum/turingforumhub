@@ -10,7 +10,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
-import { Home, Settings, BookOpen, MessageSquare, Users } from 'lucide-react';
+import { Home, Settings, BookOpen, MessageSquare, Users, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const Header = () => {
@@ -72,6 +72,19 @@ export const Header = () => {
                     >
                       <Home className="mr-2 h-4 w-4" />
                       Home
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+
+                  <NavigationMenuItem>
+                    <NavigationMenuLink 
+                      className={cn(
+                        "group inline-flex h-9 w-max items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                        isActive('/profile') && "bg-accent/50 text-accent-foreground shadow-glow"
+                      )}
+                      onClick={() => navigate('/profile')}
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
                     </NavigationMenuLink>
                   </NavigationMenuItem>
 
