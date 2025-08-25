@@ -40,20 +40,20 @@ export const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="bg-card border-b border-border">
+    <header className="glass sticky top-0 z-50 border-b border-white/10">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-3">
               <button 
                 onClick={() => navigate('/')}
-                className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+                className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 group"
               >
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow group-hover:shadow-xl transition-all duration-300">
                   <span className="text-primary-foreground font-bold text-lg">T</span>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-foreground">Turing Forum Hub</h1>
+                  <h1 className="text-xl font-bold gradient-text">Turing Forum Hub</h1>
                   <p className="text-xs text-muted-foreground">Collaborative platform</p>
                 </div>
               </button>
@@ -65,8 +65,8 @@ export const Header = () => {
                   <NavigationMenuItem>
                     <NavigationMenuLink 
                       className={cn(
-                        "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
-                        isActive('/') && "bg-accent text-accent-foreground"
+                        "group inline-flex h-9 w-max items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                        isActive('/') && "bg-accent/50 text-accent-foreground shadow-glow"
                       )}
                       onClick={() => navigate('/')}
                     >
@@ -78,35 +78,35 @@ export const Header = () => {
                   {(role === 'reader' || role === 'contributor' || role === 'admin') && (
                     <>
                       <NavigationMenuItem>
-                        <NavigationMenuTrigger>
+                        <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50">
                           <BookOpen className="mr-2 h-4 w-4" />
                           Content
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
-                          <div className="grid gap-3 p-4 w-[300px]">
+                          <div className="grid gap-3 p-6 w-[400px] glass">
                             <NavigationMenuLink 
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                              className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
                               onClick={() => navigate('/projects')}
                             >
-                              <div className="text-sm font-medium leading-none">Projects</div>
+                              <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Projects</div>
                               <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                                 Browse and manage development projects
                               </p>
                             </NavigationMenuLink>
                             <NavigationMenuLink 
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                              className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
                               onClick={() => navigate('/wiki')}
                             >
-                              <div className="text-sm font-medium leading-none">Wiki</div>
+                              <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Wiki</div>
                               <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                                 Access knowledge base and documentation
                               </p>
                             </NavigationMenuLink>
                             <NavigationMenuLink 
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                              className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
                               onClick={() => navigate('/forums')}
                             >
-                              <div className="text-sm font-medium leading-none">Forums</div>
+                              <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Forums</div>
                               <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                                 Join discussions and conversations
                               </p>
@@ -121,8 +121,8 @@ export const Header = () => {
                     <NavigationMenuItem>
                       <NavigationMenuLink 
                         className={cn(
-                          "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
-                          isActive('/admin') && "bg-accent text-accent-foreground"
+                          "group inline-flex h-9 w-max items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                          isActive('/admin') && "bg-accent/50 text-accent-foreground shadow-glow"
                         )}
                         onClick={() => navigate('/admin')}
                       >
@@ -139,20 +139,31 @@ export const Header = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">{user.email}</span>
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-muted-foreground font-medium">{user.email}</span>
                   {role && (
-                    <Badge className={getRoleColor(role)}>
+                    <Badge className={cn(
+                      "transition-all duration-300 shadow-sm",
+                      getRoleColor(role)
+                    )}>
                       {role}
                     </Badge>
                   )}
                 </div>
-                <Button variant="outline" onClick={handleSignOut} disabled={loading}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut} 
+                  disabled={loading}
+                  className="border-white/20 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
+                >
                   Sign Out
                 </Button>
               </>
             ) : (
-              <Button onClick={() => navigate('/auth')}>
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="btn-primary"
+              >
                 Sign In
               </Button>
             )}
