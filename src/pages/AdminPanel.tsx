@@ -34,50 +34,40 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
-      // First get auth users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error('Error fetching auth users:', authError);
+      // Get user roles data - this is what we can access client-side
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('user_id, role, created_at');
+
+      if (roleError) {
+        console.error('Error fetching roles:', roleError);
         toast({
           title: "Error",
-          description: "Failed to fetch users. Make sure you have admin permissions.",
+          description: "Failed to fetch user role data",
           variant: "destructive",
         });
         return;
       }
 
-      // Then get their roles
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
+      // For security reasons, we can't access full user details client-side
+      // We'll show users by their IDs and roles only
+      const userData = roleData.map(roleRecord => ({
+        id: roleRecord.user_id,
+        email: `User ${roleRecord.user_id.slice(0, 8)}...`, // Show partial ID for privacy
+        role: roleRecord.role as UserRole,
+        created_at: roleRecord.created_at,
+        last_sign_in_at: undefined, // Not available client-side
+      }));
 
-      if (roleError) {
-        console.error('Error fetching roles:', roleError);
-        return;
-      }
-
-      // Combine the data
-      const combinedUsers = authUsers.users.map(authUser => {
-        const userRole = roleData.find(role => role.user_id === authUser.id);
-        return {
-          id: authUser.id,
-          email: authUser.email || 'No email',
-          role: userRole?.role || 'guest' as UserRole,
-          created_at: authUser.created_at,
-          last_sign_in_at: authUser.last_sign_in_at,
-        };
-      });
-
-      setUsers(combinedUsers);
+      setUsers(userData);
 
       // Calculate stats
       const stats = {
-        totalUsers: combinedUsers.length,
-        adminCount: combinedUsers.filter(u => u.role === 'admin').length,
-        contributorCount: combinedUsers.filter(u => u.role === 'contributor').length,
-        readerCount: combinedUsers.filter(u => u.role === 'reader').length,
-        guestCount: combinedUsers.filter(u => u.role === 'guest').length
+        totalUsers: userData.length,
+        adminCount: userData.filter(u => u.role === 'admin').length,
+        contributorCount: userData.filter(u => u.role === 'contributor').length,
+        readerCount: userData.filter(u => u.role === 'reader').length,
+        guestCount: userData.filter(u => u.role === 'guest').length
       };
       setStats(stats);
 
@@ -255,8 +245,8 @@ const AdminPanel = () => {
           <CardContent>
             <Alert className="mb-4">
               <AlertDescription>
-                <strong>Warning:</strong> Changing user roles will immediately affect their access permissions. 
-                You cannot remove admin access from your own account.
+                <strong>Note:</strong> For security reasons, user emails are not displayed. Users are identified by partial IDs. 
+                Changing roles will immediately affect their access permissions. You cannot remove admin access from your own account.
               </AlertDescription>
             </Alert>
 
@@ -264,18 +254,17 @@ const AdminPanel = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Email</TableHead>
+                    <TableHead>User ID</TableHead>
                     <TableHead>Current Role</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>Last Sign In</TableHead>
+                    <TableHead>Role Assigned</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((userData) => (
                     <TableRow key={userData.id}>
-                      <TableCell className="font-medium">
-                        {userData.email}
+                      <TableCell className="font-medium font-mono text-sm">
+                        {userData.id.slice(0, 8)}-{userData.id.slice(8, 12)}-...
                         {userData.id === user?.id && (
                           <Badge variant="outline" className="ml-2">You</Badge>
                         )}
@@ -287,12 +276,6 @@ const AdminPanel = () => {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDate(userData.created_at)}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {userData.last_sign_in_at 
-                          ? formatDate(userData.last_sign_in_at)
-                          : 'Never'
-                        }
                       </TableCell>
                       <TableCell>
                         <Select
