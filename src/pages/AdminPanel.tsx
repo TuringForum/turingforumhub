@@ -198,8 +198,11 @@ const AdminPanel = () => {
         description: "User has been successfully removed from the system",
       });
 
+      // Optimistically remove from UI
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+
       console.log('Refreshing user list...');
-      // Refresh the users list
+      // Additionally refetch from server to stay in sync
       await fetchUsers();
       console.log('User list refreshed');
       
