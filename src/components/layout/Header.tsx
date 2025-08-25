@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { 
   NavigationMenu,
   NavigationMenuContent,
@@ -10,34 +10,50 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
-import { Home, Settings, BookOpen, MessageSquare, Users, User } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Home, BookOpen, User, Edit2, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 export const Header = () => {
-  const { user, role, signOut, loading } = useAuth();
+  const { user, signOut, loading } = useAuth();
+  const { profile, updateProfile } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [nicknameValue, setNicknameValue] = useState('');
 
   const handleSignOut = async () => {
     await signOut();
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-500 hover:bg-red-600';
-      case 'contributor':
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'reader':
-        return 'bg-green-500 hover:bg-green-600';
-      case 'guest':
-        return 'bg-gray-500 hover:bg-gray-600';
-      default:
-        return 'bg-gray-500 hover:bg-gray-600';
+  const handleEditNickname = () => {
+    setNicknameValue(profile?.nickname || '');
+    setIsEditingNickname(true);
+  };
+
+  const handleSaveNickname = async () => {
+    if (nicknameValue.trim()) {
+      await updateProfile({ nickname: nicknameValue.trim() });
     }
+    setIsEditingNickname(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingNickname(false);
+    setNicknameValue('');
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const displayName = profile?.nickname || user?.email?.split('@')[0] || 'User';
 
   return (
     <header className="glass sticky top-0 z-50 border-b border-white/10">
@@ -76,74 +92,42 @@ export const Header = () => {
                   </NavigationMenuItem>
 
                   <NavigationMenuItem>
-                    <NavigationMenuLink 
-                      className={cn(
-                        "group inline-flex h-9 w-max items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
-                        isActive('/profile') && "bg-accent/50 text-accent-foreground shadow-glow"
-                      )}
-                      onClick={() => navigate('/profile')}
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </NavigationMenuLink>
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50">
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Content
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <div className="grid gap-3 p-6 w-[400px] glass">
+                        <NavigationMenuLink 
+                          className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
+                          onClick={() => navigate('/projects')}
+                        >
+                          <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Projects</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Browse and manage development projects
+                          </p>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink 
+                          className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
+                          onClick={() => navigate('/wiki')}
+                        >
+                          <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Wiki</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Access knowledge base and documentation
+                          </p>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink 
+                          className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
+                          onClick={() => navigate('/forums')}
+                        >
+                          <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Forums</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Join discussions and conversations
+                          </p>
+                        </NavigationMenuLink>
+                      </div>
+                    </NavigationMenuContent>
                   </NavigationMenuItem>
-
-                  {(role === 'reader' || role === 'contributor' || role === 'admin') && (
-                    <>
-                      <NavigationMenuItem>
-                        <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 data-[state=open]:bg-accent/50">
-                          <BookOpen className="mr-2 h-4 w-4" />
-                          Content
-                        </NavigationMenuTrigger>
-                        <NavigationMenuContent>
-                          <div className="grid gap-3 p-6 w-[400px] glass">
-                            <NavigationMenuLink 
-                              className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
-                              onClick={() => navigate('/projects')}
-                            >
-                              <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Projects</div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Browse and manage development projects
-                              </p>
-                            </NavigationMenuLink>
-                            <NavigationMenuLink 
-                              className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
-                              onClick={() => navigate('/wiki')}
-                            >
-                              <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Wiki</div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Access knowledge base and documentation
-                              </p>
-                            </NavigationMenuLink>
-                            <NavigationMenuLink 
-                              className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
-                              onClick={() => navigate('/forums')}
-                            >
-                              <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Forums</div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Join discussions and conversations
-                              </p>
-                            </NavigationMenuLink>
-                          </div>
-                        </NavigationMenuContent>
-                      </NavigationMenuItem>
-                    </>
-                  )}
-
-                  {role === 'admin' && (
-                    <NavigationMenuItem>
-                      <NavigationMenuLink 
-                        className={cn(
-                          "group inline-flex h-9 w-max items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
-                          isActive('/admin') && "bg-accent/50 text-accent-foreground shadow-glow"
-                        )}
-                        onClick={() => navigate('/admin')}
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Admin Panel
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  )}
                 </NavigationMenuList>
               </NavigationMenu>
             )}
@@ -151,27 +135,78 @@ export const Header = () => {
           
           <div className="flex items-center space-x-4">
             {user ? (
-              <>
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-muted-foreground font-medium">{user.email}</span>
-                  {role && (
-                    <Badge className={cn(
-                      "transition-all duration-300 shadow-sm",
-                      getRoleColor(role)
-                    )}>
-                      {role}
-                    </Badge>
-                  )}
-                </div>
-                <Button 
-                  variant="outline" 
-                  onClick={handleSignOut} 
-                  disabled={loading}
-                  className="border-white/20 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
-                >
-                  Sign Out
-                </Button>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-3 h-auto py-2 hover:bg-accent/50">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {displayName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-left">
+                      <p className="text-sm font-medium">{displayName}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 glass">
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={profile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                          {displayName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        {isEditingNickname ? (
+                          <div className="space-y-2">
+                            <Input
+                              value={nicknameValue}
+                              onChange={(e) => setNicknameValue(e.target.value)}
+                              placeholder="Enter nickname"
+                              className="h-8"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveNickname();
+                                if (e.key === 'Escape') handleCancelEdit();
+                              }}
+                              autoFocus
+                            />
+                            <div className="flex space-x-2">
+                              <Button size="sm" onClick={handleSaveNickname} className="h-6 px-2 text-xs">
+                                Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={handleCancelEdit} className="h-6 px-2 text-xs">
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <p className="font-medium">{displayName}</p>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleEditNickname}
+                                className="h-6 w-6 p-0 hover:bg-accent/50"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenuItem onClick={handleSignOut} disabled={loading} className="text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button 
                 onClick={() => navigate('/auth')}

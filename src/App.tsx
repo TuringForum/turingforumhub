@@ -10,7 +10,6 @@ import AdminPanel from "./pages/AdminPanel";
 import Projects from "./pages/Projects";
 import Wiki from "./pages/Wiki";
 import Forums from "./pages/Forums";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,7 +30,6 @@ const App = () => (
               <Route path="/projects" element={<Projects />} />
               <Route path="/wiki" element={<Wiki />} />
               <Route path="/forums" element={<Forums />} />
-              <Route path="/profile" element={<Profile />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
