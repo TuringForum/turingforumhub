@@ -8,8 +8,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth, UserRole } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Users, Shield, Activity, Settings, UserCheck, UserX } from 'lucide-react';
+import { Trash2, Users, Shield, Activity, Settings, UserCheck, UserX } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface UserData {
   id: string;
@@ -25,6 +36,7 @@ const AdminPanel = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalUsers: 0,
     adminCount: 0,
@@ -137,6 +149,59 @@ const AdminPanel = () => {
       });
     } finally {
       setUpdatingRole(null);
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    if (userId === user?.id) {
+      toast({
+        title: "Cannot Delete Own Account",
+        description: "You cannot delete your own account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setDeletingUser(userId);
+    
+    try {
+      // Delete from user_roles table (this will cascade to profiles if needed)
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (roleError) {
+        throw roleError;
+      }
+
+      // Also delete from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (profileError) {
+        console.warn('Error deleting profile:', profileError);
+        // Continue even if profile deletion fails
+      }
+
+      toast({
+        title: "User Deleted",
+        description: "User has been successfully removed from the system",
+      });
+
+      // Refresh the users list
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingUser(null);
     }
   };
 
@@ -261,8 +326,8 @@ const AdminPanel = () => {
           <CardContent>
             <Alert className="mb-4">
               <AlertDescription>
-                <strong>Note:</strong> For security reasons, user emails are not displayed. Users are identified by partial IDs. 
-                Changing roles will immediately affect their access permissions. You cannot remove admin access from your own account.
+                <strong>Note:</strong> For security reasons, user emails are not displayed. Users are identified by partial IDs and nicknames. 
+                Changing roles will immediately affect their access permissions. You cannot remove admin access from your own account or delete your own account.
               </AlertDescription>
             </Alert>
 
@@ -300,21 +365,64 @@ const AdminPanel = () => {
                         {formatDate(userData.created_at)}
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={userData.role || 'guest'}
-                          onValueChange={(value: UserRole) => updateUserRole(userData.id, value)}
-                          disabled={updatingRole === userData.id}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="guest">Guest</SelectItem>
-                            <SelectItem value="reader">Reader</SelectItem>
-                            <SelectItem value="contributor">Contributor</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center space-x-2">
+                          <Select
+                            value={userData.role || 'guest'}
+                            onValueChange={(value: UserRole) => updateUserRole(userData.id, value)}
+                            disabled={updatingRole === userData.id || deletingUser === userData.id}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="guest">Guest</SelectItem>
+                              <SelectItem value="reader">Reader</SelectItem>
+                              <SelectItem value="contributor">Contributor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={userData.id === user?.id || deletingUser === userData.id}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                {deletingUser === userData.id ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-destructive"></div>
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this user? This action will:
+                                  <ul className="list-disc ml-6 mt-2">
+                                    <li>Remove the user from all roles</li>
+                                    <li>Delete their profile information</li>
+                                    <li>Permanently remove their access to the system</li>
+                                  </ul>
+                                  <br />
+                                  <strong>This action cannot be undone.</strong>
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteUser(userData.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete User
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
