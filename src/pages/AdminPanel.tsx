@@ -165,15 +165,20 @@ const AdminPanel = () => {
     setDeletingUser(userId);
     
     try {
-      // Delete from user_roles table (this will cascade to profiles if needed)
+      console.log('Starting user deletion for:', userId);
+      
+      // Delete from user_roles table first
       const { error: roleError } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', userId);
 
       if (roleError) {
+        console.error('Error deleting user role:', roleError);
         throw roleError;
       }
+      
+      console.log('User role deleted successfully');
 
       // Also delete from profiles table
       const { error: profileError } = await supabase
@@ -184,6 +189,8 @@ const AdminPanel = () => {
       if (profileError) {
         console.warn('Error deleting profile:', profileError);
         // Continue even if profile deletion fails
+      } else {
+        console.log('User profile deleted successfully');
       }
 
       toast({
@@ -191,8 +198,11 @@ const AdminPanel = () => {
         description: "User has been successfully removed from the system",
       });
 
+      console.log('Refreshing user list...');
       // Refresh the users list
       await fetchUsers();
+      console.log('User list refreshed');
+      
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
