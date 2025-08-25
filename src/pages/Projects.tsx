@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { ProjectForm, ProjectFormData } from '@/components/projects/ProjectForm';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FeatureList } from '@/components/projects/FeatureList';
+import { BugList } from '@/components/projects/BugList';
 import { BookOpen, Plus, Search } from 'lucide-react';
 
 const Projects = () => {
@@ -202,68 +205,90 @@ const Projects = () => {
             </DialogTitle>
           </DialogHeader>
           {selectedProject && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">
-                  {selectedProject.description || 'No description provided'}
-                </p>
-              </div>
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="features">Features</TabsTrigger>
+                <TabsTrigger value="bugs">Bugs</TabsTrigger>
+              </TabsList>
               
-              {selectedProject.content && (
+              <TabsContent value="overview" className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Content</h3>
-                  <div className="bg-muted/30 rounded-lg p-4">
-                    <pre className="whitespace-pre-wrap text-sm">
-                      {selectedProject.content}
-                    </pre>
+                  <h3 className="text-lg font-semibold mb-2">Description</h3>
+                  <p className="text-muted-foreground">
+                    {selectedProject.description || 'No description provided'}
+                  </p>
+                </div>
+                
+                {selectedProject.content && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Content</h3>
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <pre className="whitespace-pre-wrap text-sm">
+                        {selectedProject.content}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Status:</strong> {selectedProject.status}
+                  </div>
+                  <div>
+                    <strong>Created by:</strong> {selectedProject.creator_nickname || 'Unknown'}
+                  </div>
+                  <div>
+                    <strong>Created:</strong> {new Date(selectedProject.created_at).toLocaleDateString()}
+                  </div>
+                  <div>
+                    <strong>Updated:</strong> {new Date(selectedProject.updated_at).toLocaleDateString()}
                   </div>
                 </div>
-              )}
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <strong>Status:</strong> {selectedProject.status}
-                </div>
-                <div>
-                  <strong>Created by:</strong> {selectedProject.creator_nickname || 'Unknown'}
-                </div>
-                <div>
-                  <strong>Created:</strong> {new Date(selectedProject.created_at).toLocaleDateString()}
-                </div>
-                <div>
-                  <strong>Updated:</strong> {new Date(selectedProject.updated_at).toLocaleDateString()}
-                </div>
-              </div>
-
-              {selectedProject.tags && selectedProject.tags.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.tags.map((tag) => (
-                      <span key={tag} className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
-                        {tag}
-                      </span>
-                    ))}
+                {selectedProject.tags && selectedProject.tags.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.tags.map((tag) => (
+                        <span key={tag} className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {(selectedProject.repository_url || selectedProject.demo_url) && (
-                <div className="flex space-x-4">
-                  {selectedProject.repository_url && (
-                    <Button variant="outline" onClick={() => window.open(selectedProject.repository_url!, '_blank')}>
-                      View Repository
-                    </Button>
-                  )}
-                  {selectedProject.demo_url && (
-                    <Button variant="outline" onClick={() => window.open(selectedProject.demo_url!, '_blank')}>
-                      View Demo
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
+                {(selectedProject.repository_url || selectedProject.demo_url) && (
+                  <div className="flex space-x-4">
+                    {selectedProject.repository_url && (
+                      <Button variant="outline" onClick={() => window.open(selectedProject.repository_url!, '_blank')}>
+                        View Repository
+                      </Button>
+                    )}
+                    {selectedProject.demo_url && (
+                      <Button variant="outline" onClick={() => window.open(selectedProject.demo_url!, '_blank')}>
+                        View Demo
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="features">
+                <FeatureList 
+                  projectId={selectedProject.id} 
+                  isOwner={user?.id === selectedProject.created_by}
+                />
+              </TabsContent>
+              
+              <TabsContent value="bugs">
+                <BugList 
+                  projectId={selectedProject.id} 
+                  isOwner={user?.id === selectedProject.created_by}
+                />
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
