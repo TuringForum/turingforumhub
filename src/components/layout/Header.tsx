@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Home, BookOpen, User, Edit2, LogOut, Camera } from 'lucide-react';
+import { Home, BookOpen, User, Edit2, LogOut, Camera, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
@@ -167,6 +167,15 @@ export const Header = () => {
                           <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Forums</div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Join discussions and conversations
+                          </p>
+                        </NavigationMenuLink>
+                        <NavigationMenuLink 
+                          className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
+                          onClick={() => navigate('/admin')}
+                        >
+                          <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300 text-red-400">Admin Panel</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Manage users, roles, and system settings
                           </p>
                         </NavigationMenuLink>
                       </div>
