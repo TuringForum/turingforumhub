@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, MessageSquare } from 'lucide-react';
-import alanTuringImage from '@/assets/alan-turing.jpg';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -95,14 +94,11 @@ const Index = () => {
       <div className="mb-12 text-center">
         <div className="flex flex-col items-center mb-6">
           <img 
-            src={alanTuringImage} 
+            src="/lovable-uploads/4a8eae7c-5598-408e-8d97-3a8d7275f7af.png" 
             alt="Alan Turing" 
             className="w-32 h-32 rounded-full shadow-xl mb-6 border-4 border-primary/20"
           />
           <h1 className="text-5xl font-bold mb-4 gradient-text">Turing Forum Hub</h1>
-          <p className="text-xl text-muted-foreground">
-            Explore our collaborative platform
-          </p>
         </div>
       </div>
 
