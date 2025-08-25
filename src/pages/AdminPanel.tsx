@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface UserData {
   id: string;
   email: string;
+  nickname: string | null;
   role: UserRole | null;
   created_at: string;
   last_sign_in_at?: string;
@@ -34,7 +35,7 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
-      // Get user roles data - this is what we can access client-side
+      // Get user roles data
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('user_id, role, created_at');
@@ -49,11 +50,26 @@ const AdminPanel = () => {
         return;
       }
 
-      // For security reasons, we can't access full user details client-side
-      // We'll show users by their IDs and roles only
+      // Get profiles data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, nickname');
+
+      if (profileError) {
+        console.error('Error fetching profiles:', profileError);
+        // Continue without profile data
+      }
+
+      // Create a map of user_id to nickname for efficient lookup
+      const nicknameMap = new Map(
+        profileData?.map(profile => [profile.user_id, profile.nickname]) || []
+      );
+
+      // Map the data to include nicknames
       const userData = roleData.map(roleRecord => ({
         id: roleRecord.user_id,
         email: `User ${roleRecord.user_id.slice(0, 8)}...`, // Show partial ID for privacy
+        nickname: nicknameMap.get(roleRecord.user_id) || null,
         role: roleRecord.role as UserRole,
         created_at: roleRecord.created_at,
         last_sign_in_at: undefined, // Not available client-side
@@ -254,7 +270,8 @@ const AdminPanel = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User ID</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Nickname</TableHead>
                     <TableHead>Current Role</TableHead>
                     <TableHead>Role Assigned</TableHead>
                     <TableHead>Actions</TableHead>
@@ -267,6 +284,11 @@ const AdminPanel = () => {
                         {userData.id.slice(0, 8)}-{userData.id.slice(8, 12)}-...
                         {userData.id === user?.id && (
                           <Badge variant="outline" className="ml-2">You</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {userData.nickname || (
+                          <span className="text-muted-foreground italic">No nickname</span>
                         )}
                       </TableCell>
                       <TableCell>
