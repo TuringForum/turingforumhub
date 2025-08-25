@@ -53,10 +53,13 @@ export const useProfile = () => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
+      // First try to upsert (insert or update) the profile
       const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
-        .eq('user_id', user.id)
+        .upsert({ 
+          user_id: user.id,
+          ...updates 
+        })
         .select()
         .single();
 
