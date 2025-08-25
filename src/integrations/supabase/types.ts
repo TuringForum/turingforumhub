@@ -44,6 +44,51 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string
+          demo_url: string | null
+          description: string | null
+          id: string
+          is_public: boolean
+          repository_url: string | null
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by: string
+          demo_url?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          repository_url?: string | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          demo_url?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          repository_url?: string | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
