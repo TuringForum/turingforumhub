@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import AdminPanel from "./pages/AdminPanel";
 import Projects from "./pages/Projects";
 import Wiki from "./pages/Wiki";
+import WikiPageDetail from "./pages/WikiPageDetail";
 import Forums from "./pages/Forums";
 import PostDetail from "./pages/PostDetail";
 import Profile from "./pages/Profile";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/wiki" element={<Wiki />} />
+              <Route path="/wiki/:slug" element={<WikiPageDetail />} />
               <Route path="/forums" element={<Forums />} />
               <Route path="/forums/post/:postId" element={<PostDetail />} />
               <Route path="/profile" element={<Profile />} />

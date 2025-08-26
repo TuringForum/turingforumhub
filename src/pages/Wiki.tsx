@@ -1,10 +1,23 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RoleGuard } from '@/components/auth/RoleGuard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BookOpen, Plus, Search, FileText, Folder } from 'lucide-react';
+import { BookOpen, Search, FileText } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useWikiPages } from '@/hooks/useWikiPages';
+import { CreatePageDialog } from '@/components/wiki/CreatePageDialog';
+import { WikiPageCard } from '@/components/wiki/WikiPageCard';
+import { WikiCategoryList } from '@/components/wiki/WikiCategoryList';
 
 const Wiki = () => {
+  const { role } = useAuth();
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState<string>();
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data: pages, isLoading: pagesLoading } = useWikiPages(selectedCategory, searchQuery);
   return (
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
       <div className="container mx-auto p-6">
@@ -22,138 +35,88 @@ const Wiki = () => {
               <Input 
                 placeholder="Search wiki articles..." 
                 className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
           <RoleGuard allowedRoles={['contributor', 'admin']}>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Article
-            </Button>
+            <CreatePageDialog />
           </RoleGuard>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Categories</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Folder className="mr-2 h-4 w-4" />
-                  Getting Started
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Folder className="mr-2 h-4 w-4" />
-                  Development
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Folder className="mr-2 h-4 w-4" />
-                  Best Practices
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Folder className="mr-2 h-4 w-4" />
-                  Tutorials
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Folder className="mr-2 h-4 w-4" />
-                  Reference
-                </Button>
-              </CardContent>
-            </Card>
+            <WikiCategoryList 
+              selectedCategory={selectedCategory} 
+              onCategorySelect={setSelectedCategory}
+            />
           </div>
 
           <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileText className="mr-2 h-5 w-5" />
-                    Getting Started Guide
-                  </CardTitle>
-                  <CardDescription>
-                    Learn how to use the Turing Forum Hub platform
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                    <p><strong>Category:</strong> Getting Started</p>
-                    <p><strong>Last Updated:</strong> 3 days ago</p>
-                    <p><strong>Author:</strong> Admin</p>
-                  </div>
-                  <Button className="w-full" variant="outline">
-                    Read Article
-                  </Button>
+            {pagesLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="space-y-3">
+                        <div className="h-6 bg-muted rounded w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
+                        <div className="h-4 bg-muted rounded w-2/3"></div>
+                        <div className="h-8 bg-muted rounded w-full"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : pages && pages.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pages.map((page) => (
+                  <WikiPageCard 
+                    key={page.id} 
+                    page={page}
+                    onClick={() => navigate(`/wiki/${page.slug}`)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2">
+                <CardContent className="p-12 text-center">
+                  <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="font-semibold mb-2">
+                    {searchQuery 
+                      ? 'No articles found' 
+                      : selectedCategory 
+                        ? 'No articles in this category' 
+                        : 'No articles yet'
+                    }
+                  </h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {searchQuery
+                      ? 'Try adjusting your search terms or browse categories.'
+                      : selectedCategory
+                        ? 'Be the first to contribute to this category.'
+                        : 'Start building the knowledge base by creating the first article.'
+                    }
+                  </p>
+                  <RoleGuard allowedRoles={['contributor', 'admin']}>
+                    <CreatePageDialog />
+                  </RoleGuard>
                 </CardContent>
               </Card>
+            )}
 
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileText className="mr-2 h-5 w-5" />
-                    Development Workflow
-                  </CardTitle>
-                  <CardDescription>
-                    Best practices for collaborative development
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                    <p><strong>Category:</strong> Development</p>
-                    <p><strong>Last Updated:</strong> 1 week ago</p>
-                    <p><strong>Author:</strong> Contributor</p>
-                  </div>
-                  <Button className="w-full" variant="outline">
-                    Read Article
-                  </Button>
+            {role === 'reader' && pages && pages.length > 0 && (
+              <Card className="border-dashed border-2 mt-6">
+                <CardContent className="p-6 text-center">
+                  <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="font-semibold mb-2">Want to contribute to the wiki?</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    You have read-only access. Contact an admin to upgrade your role for editing privileges.
+                  </p>
                 </CardContent>
               </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileText className="mr-2 h-5 w-5" />
-                    Code Review Guidelines
-                  </CardTitle>
-                  <CardDescription>
-                    How to conduct effective code reviews
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                    <p><strong>Category:</strong> Best Practices</p>
-                    <p><strong>Last Updated:</strong> 2 weeks ago</p>
-                    <p><strong>Author:</strong> Admin</p>
-                  </div>
-                  <Button className="w-full" variant="outline">
-                    Read Article
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileText className="mr-2 h-5 w-5" />
-                    API Documentation
-                  </CardTitle>
-                  <CardDescription>
-                    Complete reference for platform APIs
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                    <p><strong>Category:</strong> Reference</p>
-                    <p><strong>Last Updated:</strong> 4 days ago</p>
-                    <p><strong>Author:</strong> Admin</p>
-                  </div>
-                  <Button className="w-full" variant="outline">
-                    Read Article
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            )}
           </div>
         </div>
       </div>

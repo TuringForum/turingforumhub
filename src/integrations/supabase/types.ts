@@ -306,6 +306,133 @@ export type Database = {
         }
         Relationships: []
       }
+      wiki_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wiki_page_revisions: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          excerpt: string | null
+          id: string
+          page_id: string
+          title: string
+          version: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          excerpt?: string | null
+          id?: string
+          page_id: string
+          title: string
+          version: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          excerpt?: string | null
+          id?: string
+          page_id?: string
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_page_revisions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wiki_pages: {
+        Row: {
+          category_id: string
+          content: string
+          created_at: string
+          created_by: string
+          excerpt: string | null
+          id: string
+          is_published: boolean
+          slug: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          view_count: number
+        }
+        Insert: {
+          category_id: string
+          content: string
+          created_at?: string
+          created_by: string
+          excerpt?: string | null
+          id?: string
+          is_published?: boolean
+          slug: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          view_count?: number
+        }
+        Update: {
+          category_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          excerpt?: string | null
+          id?: string
+          is_published?: boolean
+          slug?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_pages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -321,6 +448,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_wiki_page_view: {
+        Args: { page_id: string }
+        Returns: undefined
       }
     }
     Enums: {
