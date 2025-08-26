@@ -14,6 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
+      forum_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      forum_posts: {
+        Row: {
+          category_id: string
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          is_locked: boolean
+          is_pinned: boolean
+          last_reply_at: string | null
+          last_reply_by: string | null
+          reply_count: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          last_reply_at?: string | null
+          last_reply_by?: string | null
+          reply_count?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_locked?: boolean
+          is_pinned?: boolean
+          last_reply_at?: string | null
+          last_reply_by?: string | null
+          reply_count?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_replies: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          post_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          post_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

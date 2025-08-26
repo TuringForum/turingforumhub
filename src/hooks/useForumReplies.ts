@@ -1,0 +1,157 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+export interface ForumReply {
+  id: string;
+  content: string;
+  post_id: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  author?: {
+    id: string;
+    nickname: string | null;
+    avatar_url: string | null;
+  };
+}
+
+export const useForumReplies = (postId: string) => {
+  return useQuery({
+    queryKey: ['forum-replies', postId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('forum_replies')
+        .select(`
+          *
+        `)
+        .eq('post_id', postId)
+        .order('created_at');
+
+      if (error) {
+        console.error('Error fetching forum replies:', error);
+        throw error;
+      }
+
+      return data as ForumReply[];
+    },
+  });
+};
+
+export const useCreateForumReply = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (reply: {
+      content: string;
+      post_id: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('forum_replies')
+        .insert([{
+          ...reply,
+          created_by: user.id,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['forum-replies', variables.post_id] });
+      queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['forum-post', variables.post_id] });
+      toast({
+        title: 'Reply Posted',
+        description: 'Your reply has been posted successfully.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating forum reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to post reply. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+export const useUpdateForumReply = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<ForumReply> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('forum_replies')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['forum-replies', data.post_id] });
+      toast({
+        title: 'Reply Updated',
+        description: 'Reply has been updated successfully.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating forum reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update reply. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+export const useDeleteForumReply = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (replyId: string) => {
+      // Get the reply data before deleting to know which post to invalidate
+      const { data: replyData } = await supabase
+        .from('forum_replies')
+        .select('post_id')
+        .eq('id', replyId)
+        .single();
+
+      const { error } = await supabase
+        .from('forum_replies')
+        .delete()
+        .eq('id', replyId);
+
+      if (error) throw error;
+      return replyData;
+    },
+    onSuccess: (replyData) => {
+      if (replyData) {
+        queryClient.invalidateQueries({ queryKey: ['forum-replies', replyData.post_id] });
+        queryClient.invalidateQueries({ queryKey: ['forum-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['forum-post', replyData.post_id] });
+      }
+      toast({
+        title: 'Reply Deleted',
+        description: 'Reply has been deleted successfully.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting forum reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete reply. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+};
