@@ -7,7 +7,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,21 +20,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus } from 'lucide-react';
 import { useWikiCategories } from '@/hooks/useWikiCategories';
-import { useCreateWikiPage } from '@/hooks/useWikiPages';
+import { useUpdateWikiPage, WikiPage } from '@/hooks/useWikiPages';
 
-export function CreatePageDialog() {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [content, setContent] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [isPublished, setIsPublished] = useState(true);
+interface EditPageDialogProps {
+  page: WikiPage;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps) {
+  const [title, setTitle] = useState(page.title);
+  const [slug, setSlug] = useState(page.slug);
+  const [content, setContent] = useState(page.content);
+  const [excerpt, setExcerpt] = useState(page.excerpt || '');
+  const [categoryId, setCategoryId] = useState(page.category_id);
+  const [isPublished, setIsPublished] = useState(page.is_published);
 
   const { data: categories } = useWikiCategories();
-  const createPage = useCreateWikiPage();
+  const updatePage = useUpdateWikiPage();
 
   // Auto-generate slug from title
   const handleTitleChange = (value: string) => {
@@ -55,7 +58,8 @@ export function CreatePageDialog() {
     }
 
     try {
-      await createPage.mutateAsync({
+      await updatePage.mutateAsync({
+        id: page.id,
         title: title.trim(),
         slug: slug.trim(),
         content: content.trim(),
@@ -64,33 +68,20 @@ export function CreatePageDialog() {
         is_published: isPublished,
       });
       
-      // Reset form and close dialog
-      setTitle('');
-      setSlug('');
-      setContent('');
-      setExcerpt('');
-      setCategoryId('');
-      setIsPublished(true);
-      setOpen(false);
+      onOpenChange(false);
     } catch (error) {
       // Error is handled by the mutation
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Article
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create New Wiki Article</DialogTitle>
+            <DialogTitle>Edit Wiki Article</DialogTitle>
             <DialogDescription>
-              Share knowledge with the community by creating a new wiki article.
+              Make changes to your wiki article.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -153,22 +144,22 @@ export function CreatePageDialog() {
                 checked={isPublished}
                 onCheckedChange={setIsPublished}
               />
-              <Label htmlFor="published">Publish immediately</Label>
+              <Label htmlFor="published">Published</Label>
             </div>
           </div>
           <DialogFooter>
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              disabled={createPage.isPending || !title.trim() || !content.trim() || !categoryId || !slug.trim()}
+              disabled={updatePage.isPending || !title.trim() || !content.trim() || !categoryId || !slug.trim()}
             >
-              {createPage.isPending ? 'Creating...' : 'Create Article'}
+              {updatePage.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </form>

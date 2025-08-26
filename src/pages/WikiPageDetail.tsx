@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,11 +9,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Eye, Calendar, Edit, FileText, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWikiPage } from '@/hooks/useWikiPages';
+import { RichTextRenderer } from '@/components/wiki/RichTextRenderer';
+import { EditPageDialog } from '@/components/wiki/EditPageDialog';
 
 const WikiPageDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, role } = useAuth();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: page, isLoading, error } = useWikiPage(slug!);
 
@@ -66,7 +70,7 @@ const WikiPageDetail = () => {
           </Button>
           
           {canEdit && (
-            <Button>
+            <Button onClick={() => setEditDialogOpen(true)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Page
             </Button>
@@ -137,17 +141,7 @@ const WikiPageDetail = () => {
         {/* Page Content */}
         <Card className="enhanced-card">
           <CardContent className="p-8">
-            <div className="prose prose-lg max-w-none">
-              <div 
-                className="text-foreground leading-relaxed whitespace-pre-wrap"
-                style={{ 
-                  lineHeight: '1.8',
-                  fontSize: '1.1rem'
-                }}
-              >
-                {page.content}
-              </div>
-            </div>
+            <RichTextRenderer content={page.content} />
           </CardContent>
         </Card>
 
@@ -164,6 +158,15 @@ const WikiPageDetail = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Edit Dialog */}
+        {page && (
+          <EditPageDialog 
+            page={page}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+          />
         )}
       </div>
     </RoleGuard>
