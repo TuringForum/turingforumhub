@@ -19,9 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import { useForumCategories } from '@/hooks/useForumCategories';
 import { useCreateForumPost } from '@/hooks/useForumPosts';
+import { AIAssistant } from '@/components/ai/AIAssistant';
 
 export function CreatePostDialog() {
   const [open, setOpen] = useState(false);
@@ -99,7 +100,20 @@ export function CreatePostDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="content">Content</Label>
+                <AIAssistant
+                  trigger={
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Generate
+                    </Button>
+                  }
+                  task="generate"
+                  initialPrompt={`Generate forum post content about: ${title}`}
+                  onResult={(result) => setContent(result)}
+                />
+              </div>
               <Textarea
                 id="content"
                 value={content}

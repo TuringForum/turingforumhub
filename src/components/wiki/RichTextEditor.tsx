@@ -14,10 +14,12 @@ import {
   Link as LinkIcon,
   Heading1,
   Heading2,
-  Heading3
+  Heading3,
+  Sparkles
 } from 'lucide-react';
 import { useCallback } from 'react';
 import { useWikiPages } from '@/hooks/useWikiPages';
+import { AIAssistant } from '@/components/ai/AIAssistant';
 
 interface RichTextEditorProps {
   content: string;
@@ -131,15 +133,16 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
 
   return (
     <div className="border border-input rounded-md">
-      <div className="flex flex-wrap gap-1 p-2 border-b border-input">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'bg-muted' : ''}
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
+      <div className="flex flex-wrap gap-1 p-2 border-b border-input justify-between">
+        <div className="flex flex-wrap gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={editor.isActive('bold') ? 'bg-muted' : ''}
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -196,31 +199,48 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         >
           <Quote className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={setLink}
-          className={editor.isActive('link') ? 'bg-muted' : ''}
-        >
-          <LinkIcon className="h-4 w-4" />
-        </Button>
-        <div className="flex-1" />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-        >
-          <Undo className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-        >
-          <Redo className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={setLink}
+            className={editor.isActive('link') ? 'bg-muted' : ''}
+          >
+            <LinkIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+          >
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+          >
+            <Redo className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <div className="flex gap-1">
+          <AIAssistant
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                AI Help
+              </Button>
+            }
+            task="improve"
+            context={editor.getText()}
+            onResult={(result) => {
+              editor.commands.setContent(result);
+              onChange(result);
+            }}
+          />
+        </div>
       </div>
       <EditorContent 
         editor={editor}
