@@ -348,9 +348,7 @@ const AdminPanel = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User</TableHead>
                     <TableHead>Nickname</TableHead>
-                    <TableHead>Current Role</TableHead>
                     <TableHead>Role Assigned</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -358,21 +356,13 @@ const AdminPanel = () => {
                 <TableBody>
                   {users.map((userData) => (
                     <TableRow key={userData.id}>
-                      <TableCell className="font-medium font-mono text-sm">
-                        {userData.id.slice(0, 8)}-{userData.id.slice(8, 12)}-...
-                        {userData.id === user?.id && (
-                          <Badge variant="outline" className="ml-2">You</Badge>
-                        )}
-                      </TableCell>
                       <TableCell className="font-medium">
                         {userData.nickname || (
                           <span className="text-muted-foreground italic">No nickname</span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRoleColor(userData.role || 'guest')}>
-                          {userData.role || 'guest'}
-                        </Badge>
+                        {userData.id === user?.id && (
+                          <Badge variant="outline" className="ml-2">You</Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDate(userData.created_at)}
