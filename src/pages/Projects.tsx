@@ -23,7 +23,7 @@ import { BugList } from '@/components/projects/BugList';
 import { BookOpen, Plus, Search } from 'lucide-react';
 
 const Projects = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { projects, loading, createProject, updateProject, deleteProject } = useProjects();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -103,7 +103,7 @@ const Projects = () => {
           </div>
         </div>
         
-        {user && (
+        {user && (role === 'contributor' || role === 'admin') && (
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Project
@@ -120,7 +120,7 @@ const Projects = () => {
               {searchTerm ? 'No projects match your search criteria.' : 'Get started by creating your first project.'}
             </CardDescription>
           </CardHeader>
-          {!searchTerm && user && (
+          {!searchTerm && user && (role === 'contributor' || role === 'admin') && (
             <CardContent>
               <Button onClick={() => setShowCreateDialog(true)}>
                 <Plus className="mr-2 h-4 w-4" />

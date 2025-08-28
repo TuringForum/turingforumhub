@@ -20,6 +20,7 @@ import {
 import { Plus, Edit, Trash2, Bug, AlertTriangle, CheckCircle2, XCircle, Pause } from 'lucide-react';
 import { useProjectBugs, ProjectBug } from '@/hooks/useProjectBugs';
 import { useAuth } from '@/hooks/useAuth';
+import { canEditContent } from '@/lib/roleUtils';
 
 interface BugListProps {
   projectId: string;
@@ -27,8 +28,9 @@ interface BugListProps {
 }
 
 export const BugList = ({ projectId, isOwner }: BugListProps) => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { bugs, loading, createBug, updateBug, deleteBug } = useProjectBugs(projectId);
+  const canManageBugs = canEditContent(role, isOwner);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingBug, setEditingBug] = useState<ProjectBug | null>(null);
   const [deletingBug, setDeletingBug] = useState<ProjectBug | null>(null);
@@ -145,7 +147,7 @@ export const BugList = ({ projectId, isOwner }: BugListProps) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Bugs</h3>
-        {isOwner && (
+        {canManageBugs && (
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Report Bug
@@ -157,7 +159,7 @@ export const BugList = ({ projectId, isOwner }: BugListProps) => {
         <Card>
           <CardContent className="text-center py-8">
             <p className="text-muted-foreground">No bugs reported yet</p>
-            {isOwner && (
+            {canManageBugs && (
               <Button
                 variant="outline"
                 onClick={() => setShowCreateDialog(true)}
@@ -194,7 +196,7 @@ export const BugList = ({ projectId, isOwner }: BugListProps) => {
                       </Badge>
                     </div>
                   </div>
-                  {isOwner && (
+                  {canManageBugs && (
                     <div className="flex items-center space-x-1 ml-4">
                       <Button
                         variant="ghost"

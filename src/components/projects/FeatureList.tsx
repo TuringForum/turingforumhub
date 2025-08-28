@@ -20,6 +20,7 @@ import {
 import { Plus, Edit, Trash2, Clock, CheckCircle2, XCircle, Pause } from 'lucide-react';
 import { useProjectFeatures, ProjectFeature } from '@/hooks/useProjectFeatures';
 import { useAuth } from '@/hooks/useAuth';
+import { canEditContent } from '@/lib/roleUtils';
 
 interface FeatureListProps {
   projectId: string;
@@ -27,8 +28,9 @@ interface FeatureListProps {
 }
 
 export const FeatureList = ({ projectId, isOwner }: FeatureListProps) => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { features, loading, createFeature, updateFeature, deleteFeature } = useProjectFeatures(projectId);
+  const canManageFeatures = canEditContent(role, isOwner);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingFeature, setEditingFeature] = useState<ProjectFeature | null>(null);
   const [deletingFeature, setDeletingFeature] = useState<ProjectFeature | null>(null);
@@ -142,7 +144,7 @@ export const FeatureList = ({ projectId, isOwner }: FeatureListProps) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Features</h3>
-        {isOwner && (
+        {canManageFeatures && (
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Feature
@@ -154,7 +156,7 @@ export const FeatureList = ({ projectId, isOwner }: FeatureListProps) => {
         <Card>
           <CardContent className="text-center py-8">
             <p className="text-muted-foreground">No features yet</p>
-            {isOwner && (
+            {canManageFeatures && (
               <Button
                 variant="outline"
                 onClick={() => setShowCreateDialog(true)}
@@ -191,7 +193,7 @@ export const FeatureList = ({ projectId, isOwner }: FeatureListProps) => {
                       </Badge>
                     </div>
                   </div>
-                  {isOwner && (
+                  {canManageFeatures && (
                     <div className="flex items-center space-x-1 ml-4">
                       <Button
                         variant="ghost"
