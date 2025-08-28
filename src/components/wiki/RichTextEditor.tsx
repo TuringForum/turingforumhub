@@ -15,11 +15,24 @@ import {
   Heading1,
   Heading2,
   Heading3,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useWikiPages } from '@/hooks/useWikiPages';
 import { AIAssistant } from '@/components/ai/AIAssistant';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 
 interface RichTextEditorProps {
   content: string;
@@ -29,6 +42,7 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
   const { data: wikiPages } = useWikiPages();
+  const [wikiLinkOpen, setWikiLinkOpen] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -127,6 +141,14 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }, [editor]);
 
+  const setWikiLink = useCallback((pageSlug: string, pageTitle: string) => {
+    if (!editor) return;
+    
+    const href = `/wiki/${pageSlug}`;
+    editor.chain().focus().setLink({ href }).insertContent(pageTitle).run();
+    setWikiLinkOpen(false);
+  }, [editor]);
+
   if (!editor) {
     return null;
   }
@@ -207,6 +229,43 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           >
             <LinkIcon className="h-4 w-4" />
           </Button>
+          <Popover open={wikiLinkOpen} onOpenChange={setWikiLinkOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1"
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search wiki pages..." />
+                <CommandEmpty>No wiki pages found.</CommandEmpty>
+                <CommandGroup>
+                  {wikiPages?.map((page) => (
+                    <CommandItem
+                      key={page.id}
+                      value={page.title}
+                      onSelect={() => setWikiLink(page.slug, page.title)}
+                      className="cursor-pointer"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      <div>
+                        <div className="font-medium">{page.title}</div>
+                        {page.excerpt && (
+                          <div className="text-sm text-muted-foreground truncate">
+                            {page.excerpt}
+                          </div>
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </Command>
+            </PopoverContent>
+          </Popover>
           <Button
             variant="ghost"
             size="sm"
