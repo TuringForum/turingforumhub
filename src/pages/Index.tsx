@@ -3,33 +3,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, MessageSquare } from 'lucide-react';
-
 const Index = () => {
-  const { user, loading } = useAuth();
+  const {
+    user,
+    loading
+  } = useAuth();
   const navigate = useNavigate();
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
+    return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!user) {
-    return (
-      <div className="container mx-auto p-6">
+    return <div className="container mx-auto p-6">
         <div className="text-center max-w-4xl mx-auto animate-fade-in">
           <div className="mb-8">
             <h1 className="text-6xl font-bold mb-6 gradient-text leading-tight">
               Welcome to Turing Forum Hub
             </h1>
-            <p className="text-2xl text-muted-foreground mb-8 leading-relaxed">
-              A collaborative platform for discussions and knowledge sharing
-            </p>
+            <p className="text-2xl text-muted-foreground mb-8 leading-relaxed">A collaborative platform for discussions and knowledge sharing about AI code generation</p>
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
               Join our community to access projects, wiki articles, and discussion forums. 
               Connect with like-minded developers and share your expertise.
@@ -37,11 +32,7 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/auth')}
-              className="btn-primary text-lg px-8 py-4 h-auto"
-            >
+            <Button size="lg" onClick={() => navigate('/auth')} className="btn-primary text-lg px-8 py-4 h-auto">
               Get Started
             </Button>
           </div>
@@ -57,7 +48,9 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="enhanced-card p-8 text-center animate-scale-in" style={{ animationDelay: '0.1s' }}>
+            <div className="enhanced-card p-8 text-center animate-scale-in" style={{
+            animationDelay: '0.1s'
+          }}>
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
                 <Users className="h-8 w-8 text-primary-foreground" />
               </div>
@@ -67,7 +60,9 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="enhanced-card p-8 text-center animate-scale-in" style={{ animationDelay: '0.2s' }}>
+            <div className="enhanced-card p-8 text-center animate-scale-in" style={{
+            animationDelay: '0.2s'
+          }}>
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
                 <MessageSquare className="h-8 w-8 text-primary-foreground" />
               </div>
@@ -78,19 +73,12 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="container mx-auto p-6 animate-fade-in">
+  return <div className="container mx-auto p-6 animate-fade-in">
       <div className="mb-12 text-center">
         <div className="flex flex-col items-center mb-6">
-          <img 
-            src="/lovable-uploads/4a8eae7c-5598-408e-8d97-3a8d7275f7af.png" 
-            alt="Alan Turing" 
-            className="w-32 h-32 rounded-full shadow-xl mb-6 border-4 border-primary/20"
-          />
+          <img src="/lovable-uploads/4a8eae7c-5598-408e-8d97-3a8d7275f7af.png" alt="Alan Turing" className="w-32 h-32 rounded-full shadow-xl mb-6 border-4 border-primary/20" />
           <h1 className="text-5xl font-bold mb-4 gradient-text">Turing Forum Hub</h1>
         </div>
       </div>
@@ -153,8 +141,6 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
