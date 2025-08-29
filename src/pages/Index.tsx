@@ -21,6 +21,7 @@ const Index = () => {
     return <div className="container mx-auto p-6">
         <div className="text-center max-w-4xl mx-auto animate-fade-in">
           <div className="mb-8">
+            <img src="/lovable-uploads/4a8eae7c-5598-408e-8d97-3a8d7275f7af.png" alt="Alan Turing" className="w-32 h-32 rounded-full shadow-xl mb-8 border-4 border-primary/20 mx-auto" />
             <h1 className="text-6xl font-bold mb-6 gradient-text leading-tight">
               Welcome to Turing Forum Hub
             </h1>
