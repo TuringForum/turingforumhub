@@ -44,13 +44,6 @@ const Index = () => {
             >
               Get Started
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="text-lg px-8 py-4 h-auto border-white/20 hover:bg-white/10 hover:border-white/40"
-            >
-              Learn More
-            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
