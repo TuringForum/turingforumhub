@@ -84,32 +84,37 @@ export const useLiveChatMessages = (roomId: string | null) => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('livechat_messages')
-        .select(`
-          *,
-          profiles:user_id (
-            nickname,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
         .limit(100);
 
       if (error) throw error;
 
-      const formattedMessages: ChatMessage[] = (data || []).map((msg: any) => ({
-        id: msg.id,
-        content: msg.content,
-        user_id: msg.user_id,
-        user_name: msg.profiles?.nickname || 'Unknown User',
-        user_avatar: msg.profiles?.avatar_url,
-        room_id: msg.room_id,
-        created_at: msg.created_at,
-      }));
+      // Fetch user profiles separately
+      const messagesWithProfiles = await Promise.all(
+        (data || []).map(async (msg: any) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('nickname, avatar_url')
+            .eq('user_id', msg.user_id)
+            .single();
+          
+          return {
+            id: msg.id,
+            content: msg.content,
+            user_id: msg.user_id,
+            user_name: profile?.nickname || 'Unknown User',
+            user_avatar: profile?.avatar_url,
+            room_id: msg.room_id,
+            created_at: msg.created_at,
+          };
+        })
+      );
 
-      setMessages(formattedMessages);
+      setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -126,27 +131,32 @@ export const useLiveChatMessages = (roomId: string | null) => {
     if (!roomId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('livechat_participants')
-        .select(`
-          user_id,
-          profiles:user_id (
-            nickname,
-            avatar_url
-          )
-        `)
+        .select('user_id')
         .eq('room_id', roomId);
 
       if (error) throw error;
 
-      const formattedParticipants: ChatParticipant[] = (data || []).map((p: any) => ({
-        id: p.user_id,
-        name: p.profiles?.nickname || 'Unknown User',
-        avatar: p.profiles?.avatar_url,
-        is_online: true, // For now, assume all participants are online
-      }));
+      // Fetch user profiles separately
+      const participantsWithProfiles = await Promise.all(
+        (data || []).map(async (p: any) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('nickname, avatar_url')
+            .eq('user_id', p.user_id)
+            .single();
+          
+          return {
+            id: p.user_id,
+            name: profile?.nickname || 'Unknown User',
+            avatar: profile?.avatar_url,
+            is_online: true, // For now, assume all participants are online
+          };
+        })
+      );
 
-      setParticipants(formattedParticipants);
+      setParticipants(participantsWithProfiles);
     } catch (error) {
       console.error('Error fetching participants:', error);
     }
@@ -156,7 +166,7 @@ export const useLiveChatMessages = (roomId: string | null) => {
     if (!user || !roomId || !content.trim()) return false;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('livechat_messages')
         .insert({
           room_id: roomId,

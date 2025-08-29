@@ -169,6 +169,15 @@ export const Header = () => {
                             Join discussions and conversations
                           </p>
                         </NavigationMenuLink>
+                        <NavigationMenuLink 
+                          className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"
+                          onClick={() => navigate('/livechat')}
+                        >
+                          <div className="text-sm font-medium leading-none group-hover:gradient-text transition-all duration-300">Live Chat</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Video calls, screen sharing, and real-time chat
+                          </p>
+                        </NavigationMenuLink>
                         {role === 'admin' && (
                           <NavigationMenuLink 
                             className="block select-none space-y-1 rounded-lg p-4 leading-none no-underline outline-none transition-all duration-300 hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer group"

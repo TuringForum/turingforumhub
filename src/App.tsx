@@ -14,6 +14,7 @@ import WikiPageDetail from "./pages/WikiPageDetail";
 import Forums from "./pages/Forums";
 import PostDetail from "./pages/PostDetail";
 import Profile from "./pages/Profile";
+import LiveChat from "./pages/LiveChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/wiki/:slug" element={<WikiPageDetail />} />
               <Route path="/forums" element={<Forums />} />
               <Route path="/forums/post/:postId" element={<PostDetail />} />
+              <Route path="/livechat" element={<LiveChat />} />
               <Route path="/profile" element={<Profile />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

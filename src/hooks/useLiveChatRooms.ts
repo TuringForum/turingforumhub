@@ -35,18 +35,32 @@ export const useLiveChatRooms = () => {
 
   const fetchRooms = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('livechat_rooms')
         .select(`
-          *,
-          participant_count:livechat_participants(count)
+          *
         `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      setRooms(data || []);
+      // Count participants separately for each room
+      const roomsWithCounts = await Promise.all(
+        (data || []).map(async (room: any) => {
+          const { count } = await (supabase as any)
+            .from('livechat_participants')
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id);
+          
+          return {
+            ...room,
+            participant_count: count || 0
+          };
+        })
+      );
+      
+      setRooms(roomsWithCounts);
     } catch (error) {
       console.error('Error fetching rooms:', error);
       toast({
@@ -63,7 +77,7 @@ export const useLiveChatRooms = () => {
     if (!user) return null;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('livechat_rooms')
         .insert({
           name,
@@ -77,7 +91,7 @@ export const useLiveChatRooms = () => {
       if (error) throw error;
 
       // Add creator as participant
-      await supabase
+      await (supabase as any)
         .from('livechat_participants')
         .insert({
           room_id: data.id,
@@ -105,7 +119,7 @@ export const useLiveChatRooms = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('livechat_participants')
         .upsert({
           room_id: roomId,
@@ -135,7 +149,7 @@ export const useLiveChatRooms = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('livechat_participants')
         .delete()
         .eq('room_id', roomId)
