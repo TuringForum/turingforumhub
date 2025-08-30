@@ -9,15 +9,9 @@ import { ParticipantGrid } from './ParticipantGrid';
 import { ScreenShareView } from './ScreenShareView';
 import { 
   Video, 
-  VideoOff, 
-  Mic, 
-  MicOff, 
-  Monitor, 
-  MonitorOff,
-  Phone,
-  PhoneOff,
   Users,
-  Settings
+  PhoneOff,
+  Monitor
 } from 'lucide-react';
 
 interface VideoRoomProps {
@@ -28,7 +22,6 @@ interface VideoRoomProps {
 
 export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
   const { user } = useAuth();
-  const localVideoRef = useRef<HTMLVideoElement>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
   
@@ -50,26 +43,24 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
 
   useEffect(() => {
     if (roomId && user?.id) {
+      console.log('Starting connection to room:', roomId);
       handleConnect();
     }
     
     return () => {
+      console.log('Cleaning up video room');
       handleDisconnect();
     };
   }, [roomId, user?.id]);
 
-  useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-    }
-  }, [localStream]);
-
   const handleConnect = async () => {
+    console.log('Connecting to video room...');
     setConnectionStatus('connecting');
     try {
       await connect();
       setIsConnected(true);
       setConnectionStatus('connected');
+      console.log('Successfully connected to video room');
     } catch (error) {
       console.error('Failed to connect:', error);
       setConnectionStatus('disconnected');
@@ -77,15 +68,19 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
   };
 
   const handleDisconnect = async () => {
+    console.log('Disconnecting from video room...');
     await disconnect();
     setIsConnected(false);
     setConnectionStatus('disconnected');
   };
 
   const handleLeave = () => {
+    console.log('Leaving room');
     handleDisconnect();
     onLeave();
   };
+
+  console.log('VideoRoom render - isConnected:', isConnected, 'isScreenSharing:', isScreenSharing);
 
   return (
     <Card className="h-full glass overflow-hidden">

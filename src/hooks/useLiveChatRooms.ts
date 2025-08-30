@@ -119,9 +119,24 @@ export const useLiveChatRooms = () => {
     if (!user) return false;
 
     try {
+      // First check if user is already in the room
+      const { data: existing } = await (supabase as any)
+        .from('livechat_participants')
+        .select('id')
+        .eq('room_id', roomId)
+        .eq('user_id', user.id)
+        .single();
+
+      // If already in room, just return success
+      if (existing) {
+        console.log('User already in room, joining anyway');
+        return true;
+      }
+
+      // If not in room, add them
       const { error } = await (supabase as any)
         .from('livechat_participants')
-        .upsert({
+        .insert({
           room_id: roomId,
           user_id: user.id,
         });
@@ -134,8 +149,19 @@ export const useLiveChatRooms = () => {
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error joining room:', error);
+      
+      // Handle duplicate key error specifically
+      if (error.code === '23505') {
+        // User is already in the room, treat as success
+        toast({
+          title: 'Already in Room',
+          description: 'You are already a participant in this room',
+        });
+        return true;
+      }
+      
       toast({
         title: 'Error',
         description: 'Failed to join room',

@@ -21,8 +21,14 @@ const LiveChat = () => {
   const [showChat, setShowChat] = useState(true);
 
   const handleJoinRoom = async (roomId: string) => {
-    await joinRoom(roomId);
-    setActiveRoom(roomId);
+    console.log('Attempting to join room:', roomId);
+    const success = await joinRoom(roomId);
+    if (success) {
+      setActiveRoom(roomId);
+      console.log('Successfully joined room:', roomId);
+    } else {
+      console.log('Failed to join room:', roomId);
+    }
   };
 
   const handleLeaveRoom = async () => {
