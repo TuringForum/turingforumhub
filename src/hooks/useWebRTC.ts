@@ -291,10 +291,19 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
 
       await channel.current.subscribe();
 
-      // Track presence
+      // Track presence with proper fallback naming
+      const displayName = profile?.nickname || `User ${userId?.substring(0, 8) || sessionIdRef.current.substring(0, 8)}`;
+      console.log('📍 Tracking presence:', { 
+        id: sessionIdRef.current, 
+        name: displayName, 
+        profile: profile?.nickname,
+        userId: userId?.substring(0, 8),
+        sessionId: sessionIdRef.current.substring(0, 8)
+      });
+      
       await channel.current.track({
         id: sessionIdRef.current,
-        name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+        name: displayName,
         avatar: profile?.avatar_url,
         isVideoEnabled: stream ? true : false,
         isAudioEnabled: stream ? true : false
@@ -361,9 +370,10 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         
         // Update presence
         if (channel.current) {
+          const displayName = profile?.nickname || `User ${userId?.substring(0, 8) || sessionIdRef.current.substring(0, 8)}`;
           channel.current.track({
             id: sessionIdRef.current,
-            name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+            name: displayName,
             avatar: profile?.avatar_url,
             isVideoEnabled: videoTrack.enabled,
             isAudioEnabled
@@ -389,9 +399,10 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         
         // Update presence
         if (channel.current) {
+          const displayName = profile?.nickname || `User ${userId?.substring(0, 8) || sessionIdRef.current.substring(0, 8)}`;
           channel.current.track({
             id: sessionIdRef.current,
-            name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+            name: displayName,
             avatar: profile?.avatar_url,
             isVideoEnabled,
             isAudioEnabled: audioTrack.enabled

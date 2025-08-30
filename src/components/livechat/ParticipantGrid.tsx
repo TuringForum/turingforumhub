@@ -34,7 +34,8 @@ export const ParticipantGrid = ({
     localStream: !!localStream,
     remoteStreamsCount: remoteStreams.size,
     participantsCount: participants.length,
-    remoteStreamKeys: Array.from(remoteStreams.keys())
+    remoteStreamKeys: Array.from(remoteStreams.keys()),
+    participants: participants.map(p => ({ id: p.id, name: p.name }))
   });
   
   const getGridCols = (participantCount: number) => {
