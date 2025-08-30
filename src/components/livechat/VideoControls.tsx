@@ -68,8 +68,9 @@ export const VideoControls = ({
         onClick={onToggleScreenShare}
         variant={isScreenSharing ? "secondary" : "outline"}
         size="lg"
-        className="rounded-full w-12 h-12"
+        className={`rounded-full w-12 h-12 ${isScreenSharing ? 'bg-primary text-primary-foreground' : ''}`}
         disabled={!isConnected}
+        title={isScreenSharing ? 'Stop screen sharing' : 'Share your screen'}
       >
         {isScreenSharing ? (
           <MonitorOff className="w-5 h-5" />

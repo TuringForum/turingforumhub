@@ -111,35 +111,72 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
       setIsScreenSharing(false);
       
       toast({
-        title: 'Screen Share',
-        description: 'Screen sharing stopped',
+        title: 'Screen Share Stopped',
+        description: 'You stopped sharing your screen',
       });
     } else {
       try {
-        // Start screen sharing
+        // Check if browser supports screen sharing
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          throw new Error('Screen sharing is not supported in this browser');
+        }
+
+        // Start screen sharing with enhanced options
         const displayStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true,
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 }
+          } as MediaTrackConstraints,
+          audio: {
+            noiseSuppression: true,
+            echoCancellation: true,
+          } as MediaTrackConstraints,
         });
         
         setScreenShare(displayStream);
         setIsScreenSharing(true);
         
         // Handle when user stops sharing via browser controls
-        displayStream.getVideoTracks()[0].onended = () => {
-          setScreenShare(null);
-          setIsScreenSharing(false);
-        };
+        const videoTrack = displayStream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.onended = () => {
+            setScreenShare(null);
+            setIsScreenSharing(false);
+            toast({
+              title: 'Screen Share Ended',
+              description: 'Screen sharing was stopped',
+            });
+          };
+        }
         
         toast({
-          title: 'Screen Share',
-          description: 'Screen sharing started',
+          title: 'Screen Share Started',
+          description: 'You are now sharing your screen',
         });
-      } catch (error) {
+        
+        // Log what's being shared for debugging
+        const settings = videoTrack?.getSettings();
+        console.log('Screen share settings:', settings);
+        
+      } catch (error: any) {
         console.error('Error starting screen share:', error);
+        
+        let errorMessage = 'Failed to start screen sharing';
+        
+        if (error.name === 'NotAllowedError') {
+          errorMessage = 'Screen sharing permission was denied';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = 'Screen sharing is not supported in this browser';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = 'No screen or window available to share';
+        } else if (error.name === 'AbortError') {
+          errorMessage = 'Screen sharing was cancelled';
+        }
+        
         toast({
           title: 'Screen Share Error',
-          description: 'Failed to start screen sharing',
+          description: errorMessage,
           variant: 'destructive',
         });
       }

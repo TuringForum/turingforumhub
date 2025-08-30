@@ -142,6 +142,16 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
             />
           </div>
           
+          {/* Screen Share Notification */}
+          {isScreenSharing && (
+            <div className="mb-2 p-2 bg-primary/10 border border-primary/20 rounded-lg">
+              <p className="text-sm text-center text-primary flex items-center justify-center">
+                <Monitor className="w-4 h-4 mr-2" />
+                You are sharing your screen with all participants
+              </p>
+            </div>
+          )}
+          
           {/* Video Controls */}
           <VideoControls
             isVideoEnabled={isVideoEnabled}
