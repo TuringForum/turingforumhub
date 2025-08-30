@@ -49,8 +49,26 @@ export const useLiveChatMessages = (roomId: string | null) => {
           table: 'livechat_messages',
           filter: `room_id=eq.${roomId}`
         },
-        (payload) => {
-          const newMessage = payload.new as ChatMessage;
+        async (payload) => {
+          const rawMessage = payload.new as any;
+          
+          // Fetch user profile for the new message
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('nickname, avatar_url')
+            .eq('user_id', rawMessage.user_id)
+            .maybeSingle();
+          
+          const newMessage: ChatMessage = {
+            id: rawMessage.id,
+            content: rawMessage.content,
+            user_id: rawMessage.user_id,
+            user_name: profile?.nickname || 'Unknown User',
+            user_avatar: profile?.avatar_url,
+            room_id: rawMessage.room_id,
+            created_at: rawMessage.created_at,
+          };
+          
           setMessages(prev => [...prev, newMessage]);
         }
       )
