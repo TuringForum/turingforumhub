@@ -2,7 +2,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, MessageSquare } from 'lucide-react';
+import { Users, BookOpen, MessageSquare, Video } from 'lucide-react';
 const Index = () => {
   const {
     user,
@@ -38,7 +38,7 @@ const Index = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mt-16">
             <div className="enhanced-card p-8 text-center animate-scale-in">
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
                 <BookOpen className="h-8 w-8 text-primary-foreground" />
@@ -72,6 +72,18 @@ const Index = () => {
                 Engage in meaningful conversations and get help from experienced developers.
               </p>
             </div>
+
+            <div className="enhanced-card p-8 text-center animate-scale-in" style={{
+            animationDelay: '0.3s'
+          }}>
+              <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
+                <Video className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-4">Live Video Chat</h3>
+              <p className="text-muted-foreground">
+                Join video calls, share screens, and collaborate in real-time with the community.
+              </p>
+            </div>
           </div>
         </div>
       </div>;
@@ -84,7 +96,7 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <Card className="enhanced-card group cursor-pointer transition-all duration-300 hover:scale-105" onClick={() => navigate('/projects')}>
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
@@ -138,6 +150,25 @@ const Index = () => {
           <CardContent>
             <Button className="w-full group-hover:bg-primary/90" variant="secondary">
               Join Discussions
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="enhanced-card group cursor-pointer transition-all duration-300 hover:scale-105" onClick={() => navigate('/livechat')}>
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4 shadow-glow group-hover:shadow-xl transition-all duration-300">
+                <Video className="h-6 w-6 text-primary-foreground" />
+              </div>
+              Live Chat
+            </CardTitle>
+            <CardDescription className="text-base">
+              Video calls, screen sharing, and real-time chat
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full group-hover:bg-primary/90" variant="secondary">
+              Start Video Call
             </Button>
           </CardContent>
         </Card>
