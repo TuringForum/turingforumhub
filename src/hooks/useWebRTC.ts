@@ -133,14 +133,27 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
     isConnecting.current = true;
     currentRoomId.current = roomId;
     
+    let stream: MediaStream | null = null;
+    
     try {
-      // Get user media
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      
-      setLocalStream(stream);
+      // Try to get user media, but allow connection without it
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        setLocalStream(stream);
+        setIsVideoEnabled(true);
+        setIsAudioEnabled(true);
+      } catch (mediaError) {
+        console.warn('Could not access camera/microphone:', mediaError);
+        setIsVideoEnabled(false);
+        setIsAudioEnabled(false);
+        toast({
+          title: 'Media Access Denied',
+          description: 'You can still view others but cannot share your camera/microphone',
+        });
+      }
 
       // Join Supabase realtime channel
       channel.current = supabase.channel(`webrtc:${roomId}`)
@@ -160,11 +173,13 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
               // Only create offer if our ID is "smaller" to avoid race conditions
               const pc = createPeerConnection(participant.id);
               
-              // Add local stream to peer connection
-              console.log('🔵 Adding local tracks:', stream.getTracks());
-              stream.getTracks().forEach(track => {
-                pc.addTrack(track, stream);
-              });
+              // Add local stream to peer connection if available
+              if (stream) {
+                console.log('🔵 Adding local tracks:', stream.getTracks());
+                stream.getTracks().forEach(track => {
+                  pc.addTrack(track, stream);
+                });
+              }
 
               // Create offer for new participant
               pc.createOffer().then(offer => {
@@ -209,11 +224,13 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
             console.log('🟢 Received offer from', payload.from);
             const pc = createPeerConnection(payload.from);
             
-            // Add local stream to peer connection
-            console.log('🟢 Adding local tracks to answer:', stream.getTracks());
-            stream.getTracks().forEach(track => {
-              pc.addTrack(track, stream);
-            });
+            // Add local stream to peer connection if available
+            if (stream) {
+              console.log('🟢 Adding local tracks to answer:', stream.getTracks());
+              stream.getTracks().forEach(track => {
+                pc.addTrack(track, stream);
+              });
+            }
 
             pc.setRemoteDescription(new RTCSessionDescription(payload.offer))
               .then(() => pc.createAnswer())
@@ -263,8 +280,8 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         id: sessionIdRef.current,
         name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
         avatar: profile?.avatar_url,
-        isVideoEnabled: true,
-        isAudioEnabled: true
+        isVideoEnabled: stream ? true : false,
+        isAudioEnabled: stream ? true : false
       });
       
       toast({
@@ -272,10 +289,10 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         description: 'Successfully connected to the room',
       });
     } catch (error) {
-      console.error('Error connecting:', error);
+      console.error('Error connecting to room:', error);
       toast({
         title: 'Connection Error',
-        description: 'Failed to access camera and microphone',
+        description: 'Failed to connect to the room',
         variant: 'destructive',
       });
       throw error;
@@ -337,6 +354,12 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           });
         }
       }
+    } else {
+      toast({
+        title: 'No Camera Available',
+        description: 'Camera access was not granted',
+        variant: 'destructive',
+      });
     }
   }, [localStream, isAudioEnabled, userId, profile]);
 
@@ -359,6 +382,12 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           });
         }
       }
+    } else {
+      toast({
+        title: 'No Microphone Available',
+        description: 'Microphone access was not granted',
+        variant: 'destructive',
+      });
     }
   }, [localStream, isVideoEnabled, userId, profile]);
 
