@@ -106,6 +106,17 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
               </Badge>
             </div>
           </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={toggleScreenShare}
+            variant={isScreenSharing ? "secondary" : "outline"}
+            size="sm"
+            disabled={!isConnected}
+            title={isScreenSharing ? 'Stop screen sharing' : 'Share your screen'}
+          >
+            <Monitor className="w-4 h-4 mr-2" />
+            {isScreenSharing ? 'Stop Share' : 'Share Screen'}
+          </Button>
           <Button
             onClick={handleLeave}
             variant="destructive"
@@ -114,6 +125,7 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
             <PhoneOff className="w-4 h-4 mr-2" />
             Leave
           </Button>
+        </div>
         </div>
       </CardHeader>
       
