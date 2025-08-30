@@ -83,40 +83,48 @@ const LiveChat = () => {
               <MessageCircle className="w-4 h-4 mr-2" />
               {showChat ? 'Hide Chat' : 'Show Chat'}
             </Button>
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              className="btn-primary"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Room
-            </Button>
+            {!activeRoom && (
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                className="btn-primary"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Room
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)]">
-            {/* Room List Sidebar */}
-            <div className="lg:col-span-1">
-              <Card className="h-full glass">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <Users className="w-5 h-5 mr-2" />
-                    Rooms
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <RoomList 
-                    rooms={rooms}
-                    activeRoom={activeRoom}
-                    currentUserId={user?.id}
-                    onJoinRoom={handleJoinRoom}
-                    onLeaveRoom={handleLeaveRoom}
-                    onDeleteRoom={handleDeleteRoom}
-                  />
-                </CardContent>
-              </Card>
-            </div>
+            {/* Room List Sidebar - Only show when not connected to a room */}
+            {!activeRoom && (
+              <div className="lg:col-span-1">
+                <Card className="h-full glass">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Rooms
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <RoomList 
+                      rooms={rooms}
+                      activeRoom={activeRoom}
+                      currentUserId={user?.id}
+                      onJoinRoom={handleJoinRoom}
+                      onLeaveRoom={handleLeaveRoom}
+                      onDeleteRoom={handleDeleteRoom}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Video Room */}
-            <div className={`${showChat ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+            <div className={`${
+              !activeRoom 
+                ? showChat ? 'lg:col-span-2' : 'lg:col-span-3'
+                : showChat ? 'lg:col-span-3' : 'lg:col-span-4'
+            }`}>
               {activeRoom ? (
                 <VideoRoom 
                   roomId={activeRoom}
