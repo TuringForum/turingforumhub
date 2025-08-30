@@ -15,7 +15,7 @@ import { Video, Users, Plus, MessageCircle } from 'lucide-react';
 
 const LiveChat = () => {
   const { user } = useAuth();
-  const { rooms, createRoom, joinRoom, leaveRoom } = useLiveChatRooms();
+  const { rooms, createRoom, joinRoom, leaveRoom, deleteRoom } = useLiveChatRooms();
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showChat, setShowChat] = useState(true);
@@ -57,6 +57,13 @@ const LiveChat = () => {
     if (room) {
       setActiveRoom(room.id);
       setShowCreateDialog(false);
+    }
+  };
+
+  const handleDeleteRoom = async (roomId: string) => {
+    const success = await deleteRoom(roomId);
+    if (success && roomId === activeRoom) {
+      setActiveRoom(null);
     }
   };
 
@@ -106,8 +113,10 @@ const LiveChat = () => {
                   <RoomList 
                     rooms={rooms}
                     activeRoom={activeRoom}
+                    currentUserId={user?.id}
                     onJoinRoom={handleJoinRoom}
                     onLeaveRoom={handleLeaveRoom}
+                    onDeleteRoom={handleDeleteRoom}
                   />
                 </CardContent>
               </Card>

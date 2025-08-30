@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Video, Users, Lock, Globe } from 'lucide-react';
+import { Video, Users, Lock, Globe, Trash2 } from 'lucide-react';
 
 export interface LiveChatRoom {
   id: string;
@@ -17,21 +17,23 @@ export interface LiveChatRoom {
 interface RoomListProps {
   rooms: LiveChatRoom[];
   activeRoom: string | null;
+  currentUserId?: string;
   onJoinRoom: (roomId: string) => void;
   onLeaveRoom: () => void;
+  onDeleteRoom: (roomId: string) => void;
 }
 
-export const RoomList = ({ rooms, activeRoom, onJoinRoom, onLeaveRoom }: RoomListProps) => {
+export const RoomList = ({ rooms, activeRoom, currentUserId, onJoinRoom, onLeaveRoom, onDeleteRoom }: RoomListProps) => {
   return (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-3">
         {rooms.map((room) => (
           <div
             key={room.id}
-            className={`p-3 rounded-lg border transition-all duration-200 cursor-pointer hover:bg-accent/50 ${
-              activeRoom === room.id ? 'bg-accent border-primary' : 'bg-card/20 border-border/20'
+            className={`p-3 rounded-lg border transition-all duration-200 ${
+              activeRoom === room.id ? 'bg-accent border-primary' : 'bg-card/20 border-border/20 hover:bg-accent/50 cursor-pointer'
             }`}
-            onClick={() => activeRoom === room.id ? onLeaveRoom() : onJoinRoom(room.id)}
+            onClick={() => activeRoom !== room.id ? onJoinRoom(room.id) : undefined}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
@@ -62,13 +64,35 @@ export const RoomList = ({ rooms, activeRoom, onJoinRoom, onLeaveRoom }: RoomLis
                 <Users className="w-2 h-2 mr-1" />
                 {room.participant_count}
               </Badge>
-              <Button
-                size="sm"
-                variant={activeRoom === room.id ? "secondary" : "default"}
-                className="h-6 px-2 text-xs"
-              >
-                {activeRoom === room.id ? 'Leave' : 'Join'}
-              </Button>
+              <div className="flex items-center space-x-1">
+                <Button
+                  size="sm"
+                  variant={activeRoom === room.id ? "secondary" : "default"}
+                  className="h-6 px-2 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    activeRoom === room.id ? onLeaveRoom() : onJoinRoom(room.id);
+                  }}
+                >
+                  {activeRoom === room.id ? 'Leave' : 'Join'}
+                </Button>
+                {currentUserId === room.created_by && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="h-6 w-6 p-0"
+                    title="Delete room"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Are you sure you want to delete this room? This action cannot be undone.')) {
+                        onDeleteRoom(room.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}

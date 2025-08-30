@@ -200,12 +200,55 @@ export const useLiveChatRooms = () => {
     }
   };
 
+  const deleteRoom = async (roomId: string): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      // First delete all participants
+      await (supabase as any)
+        .from('livechat_participants')
+        .delete()
+        .eq('room_id', roomId);
+
+      // Then delete all messages
+      await (supabase as any)
+        .from('livechat_messages')
+        .delete()
+        .eq('room_id', roomId);
+
+      // Finally delete the room
+      const { error } = await (supabase as any)
+        .from('livechat_rooms')
+        .delete()
+        .eq('id', roomId)
+        .eq('created_by', user.id); // Only allow room creator to delete
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Room deleted successfully',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting room:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete room',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   return {
     rooms,
     loading,
     createRoom,
     joinRoom,
     leaveRoom,
+    deleteRoom,
     refetch: fetchRooms,
   };
 };
