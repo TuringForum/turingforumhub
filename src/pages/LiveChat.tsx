@@ -73,9 +73,9 @@ const LiveChat = () => {
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
-          {/* Room Control Panel */}
-          <div className="flex items-center justify-end space-x-4 mb-6">
-            {!activeRoom && (
+          {/* Room Control Panel - only show when there's content */}
+          {!activeRoom && (
+            <div className="flex items-center justify-end space-x-4 mb-6">
               <Button
                 onClick={() => setShowCreateDialog(true)}
                 className="btn-primary"
@@ -83,8 +83,8 @@ const LiveChat = () => {
                 <Plus className="w-4 h-4 mr-2" />
                 Create Room
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)]">
             {/* Room List Sidebar - Only show when not connected to a room */}
