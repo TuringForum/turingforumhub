@@ -100,7 +100,7 @@ export const useLiveChatMessages = (roomId: string | null) => {
             .from('profiles')
             .select('nickname, avatar_url')
             .eq('user_id', msg.user_id)
-            .single();
+            .maybeSingle();
           
           return {
             id: msg.id,
@@ -145,7 +145,7 @@ export const useLiveChatMessages = (roomId: string | null) => {
             .from('profiles')
             .select('nickname, avatar_url')
             .eq('user_id', p.user_id)
-            .single();
+            .maybeSingle();
           
           return {
             id: p.user_id,

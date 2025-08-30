@@ -85,12 +85,12 @@ export const ChatSidebar = ({ roomId, roomName }: ChatSidebarProps) => {
                 <Avatar className="w-8 h-8 flex-shrink-0">
                   <AvatarImage src={message.user_avatar} />
                   <AvatarFallback className="text-xs">
-                    {message.user_name.charAt(0).toUpperCase()}
+                    {(message.user_name || 'U').charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">{message.user_name}</p>
+                    <p className="text-sm font-medium">{message.user_name || 'Unknown User'}</p>
                     {message.user_id === user?.id && (
                       <Badge variant="secondary" className="text-xs">You</Badge>
                     )}
