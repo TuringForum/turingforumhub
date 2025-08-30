@@ -120,7 +120,7 @@ const ParticipantVideo = ({
             ref={videoRef}
             autoPlay
             playsInline
-            muted
+            muted={isLocal}
             className="w-full h-full object-cover"
           />
         ) : (
