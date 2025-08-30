@@ -89,9 +89,21 @@ const ParticipantVideo = ({
 
   useEffect(() => {
     if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+      const v = videoRef.current
+      v.srcObject = stream
+      const tryPlay = async () => {
+        try { await v.play() } catch (e) { console.warn('Autoplay prevented:', e) }
+      }
+      if (v.readyState >= 2) {
+        tryPlay()
+      } else {
+        v.oncanplay = () => {
+          tryPlay()
+          v.oncanplay = null
+        }
+      }
     }
-  }, [stream]);
+  }, [stream])
 
   return (
     <Card className="relative overflow-hidden bg-card/20 border-border/20">
@@ -101,7 +113,7 @@ const ParticipantVideo = ({
             ref={videoRef}
             autoPlay
             playsInline
-            muted={isLocal}
+            muted
             className="w-full h-full object-cover"
           />
         ) : (
