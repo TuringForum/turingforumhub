@@ -96,7 +96,7 @@ const ParticipantVideo = ({
   return (
     <Card className="relative overflow-hidden bg-card/20 border-border/20">
       <div className="aspect-video relative">
-        {isVideoEnabled && stream ? (
+        {stream ? (
           <video
             ref={videoRef}
             autoPlay
