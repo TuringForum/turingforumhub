@@ -180,6 +180,14 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                   pc.addTrack(track, stream);
                 });
               }
+              
+              // Add screen share tracks if currently screen sharing
+              if (screenShare) {
+                console.log('🔵 Adding screen share tracks:', screenShare.getTracks());
+                screenShare.getTracks().forEach(track => {
+                  pc.addTrack(track, screenShare);
+                });
+              }
 
               // Create offer for new participant
               pc.createOffer().then(offer => {
@@ -229,6 +237,14 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
               console.log('🟢 Adding local tracks to answer:', stream.getTracks());
               stream.getTracks().forEach(track => {
                 pc.addTrack(track, stream);
+              });
+            }
+            
+            // Add screen share tracks if currently screen sharing
+            if (screenShare) {
+              console.log('🟢 Adding screen share tracks to answer:', screenShare.getTracks());
+              screenShare.getTracks().forEach(track => {
+                pc.addTrack(track, screenShare);
               });
             }
 
@@ -395,6 +411,24 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
     if (isScreenSharing) {
       // Stop screen sharing
       screenShare?.getTracks().forEach(track => track.stop());
+      
+      // Replace screen share tracks with regular camera tracks in all peer connections
+      peerConnections.current.forEach((pc, peerId) => {
+        const senders = pc.getSenders();
+        senders.forEach(sender => {
+          if (sender.track && sender.track.kind === 'video') {
+            // Replace with local camera track if available
+            const localVideoTrack = localStream?.getVideoTracks()[0];
+            if (localVideoTrack) {
+              sender.replaceTrack(localVideoTrack);
+            } else {
+              // Remove the track if no local video
+              pc.removeTrack(sender);
+            }
+          }
+        });
+      });
+      
       setScreenShare(null);
       setIsScreenSharing(false);
       
@@ -425,10 +459,42 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         setScreenShare(displayStream);
         setIsScreenSharing(true);
         
+        // Add screen share tracks to all existing peer connections
+        const screenVideoTrack = displayStream.getVideoTracks()[0];
+        if (screenVideoTrack) {
+          peerConnections.current.forEach((pc, peerId) => {
+            console.log('🖥️ Adding screen share track to peer:', peerId);
+            const senders = pc.getSenders();
+            const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+            
+            if (videoSender) {
+              // Replace existing video track with screen share
+              videoSender.replaceTrack(screenVideoTrack);
+            } else {
+              // Add screen share track if no video track exists
+              pc.addTrack(screenVideoTrack, displayStream);
+            }
+          });
+        }
+        
         // Handle when user stops sharing via browser controls
-        const videoTrack = displayStream.getVideoTracks()[0];
-        if (videoTrack) {
-          videoTrack.onended = () => {
+        if (screenVideoTrack) {
+          screenVideoTrack.onended = () => {
+            // Replace screen share tracks with regular camera tracks
+            peerConnections.current.forEach((pc, peerId) => {
+              const senders = pc.getSenders();
+              senders.forEach(sender => {
+                if (sender.track && sender.track.kind === 'video') {
+                  const localVideoTrack = localStream?.getVideoTracks()[0];
+                  if (localVideoTrack) {
+                    sender.replaceTrack(localVideoTrack);
+                  } else {
+                    pc.removeTrack(sender);
+                  }
+                }
+              });
+            });
+            
             setScreenShare(null);
             setIsScreenSharing(false);
             toast({
@@ -444,7 +510,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         });
         
         // Log what's being shared for debugging
-        const settings = videoTrack?.getSettings();
+        const settings = screenVideoTrack?.getSettings();
         console.log('Screen share settings:', settings);
         
       } catch (error: any) {
