@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from './use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from './useProfile';
 
 interface Participant {
   id: string;
@@ -27,6 +28,7 @@ interface WebRTCHook {
 }
 
 export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
+  const { profile } = useProfile();
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
   const [screenShare, setScreenShare] = useState<MediaStream | null>(null);
@@ -258,8 +260,9 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
 
       // Track presence
       await channel.current.track({
-         id: sessionIdRef.current,
-         name: 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+        id: sessionIdRef.current,
+        name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+        avatar: profile?.avatar_url,
         isVideoEnabled: true,
         isAudioEnabled: true
       });
@@ -326,14 +329,15 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         if (channel.current) {
           channel.current.track({
             id: sessionIdRef.current,
-            name: 'User ' + userId.substring(0, 8),
+            name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+            avatar: profile?.avatar_url,
             isVideoEnabled: videoTrack.enabled,
             isAudioEnabled
           });
         }
       }
     }
-  }, [localStream, isAudioEnabled, userId]);
+  }, [localStream, isAudioEnabled, userId, profile]);
 
   const toggleAudio = useCallback(() => {
     if (localStream) {
@@ -346,14 +350,15 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         if (channel.current) {
           channel.current.track({
             id: sessionIdRef.current,
-            name: 'User ' + userId.substring(0, 8),
+            name: profile?.nickname || 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
+            avatar: profile?.avatar_url,
             isVideoEnabled,
             isAudioEnabled: audioTrack.enabled
           });
         }
       }
     }
-  }, [localStream, isVideoEnabled, userId]);
+  }, [localStream, isVideoEnabled, userId, profile]);
 
   const toggleScreenShare = async () => {
     if (isScreenSharing) {
