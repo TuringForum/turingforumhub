@@ -73,33 +73,26 @@ const LiveChat = () => {
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold mb-2 gradient-text">Live Chat & Video</h1>
-                <p className="text-muted-foreground">Connect with others through video calls, screen sharing, and real-time chat</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button
-                  onClick={() => setShowChat(!showChat)}
-                  variant="outline"
-                  size="sm"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {showChat ? 'Hide Chat' : 'Show Chat'}
-                </Button>
-                <Button
-                  onClick={() => setShowCreateDialog(true)}
-                  className="btn-primary"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Room
-                </Button>
-              </div>
-            </div>
+          {/* Room Control Panel */}
+          <div className="flex items-center justify-end space-x-4 mb-6">
+            <Button
+              onClick={() => setShowChat(!showChat)}
+              variant="outline"
+              size="sm"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              {showChat ? 'Hide Chat' : 'Show Chat'}
+            </Button>
+            <Button
+              onClick={() => setShowCreateDialog(true)}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Room
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)]">
             {/* Room List Sidebar */}
             <div className="lg:col-span-1">
               <Card className="h-full glass">
