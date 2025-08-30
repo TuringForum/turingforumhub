@@ -47,9 +47,35 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
       ]
     });
 
+    // Create data channel for messaging
+    const dataChannel = pc.createDataChannel('messages', {
+      ordered: true
+    });
+    
+    dataChannel.onopen = () => {
+      console.log('Data channel opened with', peerId);
+    };
+    
+    dataChannel.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Received message from', peerId, data);
+    };
+    
+    dataChannels.current.set(peerId, dataChannel);
+
+    // Handle incoming data channels
+    pc.ondatachannel = (event) => {
+      const incomingChannel = event.channel;
+      incomingChannel.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log('Received message from', peerId, data);
+      };
+      dataChannels.current.set(peerId, incomingChannel);
+    };
+
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log('Received remote stream from', peerId);
+      console.log('Received remote stream from', peerId, event.streams[0]);
       setRemoteStreams(prev => {
         const updated = new Map(prev);
         updated.set(peerId, event.streams[0]);
@@ -68,6 +94,18 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
             to: peerId,
             from: userId
           }
+        });
+      }
+    };
+
+    // Handle connection state changes
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state with', peerId, ':', pc.connectionState);
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        setRemoteStreams(prev => {
+          const updated = new Map(prev);
+          updated.delete(peerId);
+          return updated;
         });
       }
     };
@@ -95,10 +133,11 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         })
         .on('presence', { event: 'join' }, ({ newPresences }) => {
           console.log('Participant joined:', newPresences);
-          // Create peer connections for new participants
+          // Create peer connections for new participants (only if we joined first)
           newPresences.forEach((presence: any) => {
             const participant = presence as Participant;
-            if (participant.id !== userId) {
+            if (participant.id !== userId && participant.id > userId) {
+              // Only create offer if our ID is "smaller" to avoid race conditions
               const pc = createPeerConnection(participant.id);
               
               // Add local stream to peer connection
@@ -108,16 +147,19 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
 
               // Create offer for new participant
               pc.createOffer().then(offer => {
-                pc.setLocalDescription(offer);
+                return pc.setLocalDescription(offer);
+              }).then(() => {
                 channel.current.send({
                   type: 'broadcast',
                   event: 'offer',
                   payload: {
-                    offer,
+                    offer: pc.localDescription,
                     to: participant.id,
                     from: userId
                   }
                 });
+              }).catch(err => {
+                console.error('Error creating offer:', err);
               });
             }
           });
@@ -151,16 +193,21 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
             pc.setRemoteDescription(new RTCSessionDescription(payload.offer))
               .then(() => pc.createAnswer())
               .then(answer => {
-                pc.setLocalDescription(answer);
+                return pc.setLocalDescription(answer);
+              })
+              .then(() => {
                 channel.current.send({
                   type: 'broadcast',
                   event: 'answer',
                   payload: {
-                    answer,
+                    answer: pc.localDescription,
                     to: payload.from,
                     from: userId
                   }
                 });
+              })
+              .catch(err => {
+                console.error('Error handling offer:', err);
               });
           }
         })
@@ -212,6 +259,14 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
     // Stop all tracks
     localStream?.getTracks().forEach(track => track.stop());
     screenShare?.getTracks().forEach(track => track.stop());
+    
+    // Close data channels
+    dataChannels.current.forEach(channel => {
+      if (channel.readyState === 'open') {
+        channel.close();
+      }
+    });
+    dataChannels.current.clear();
     
     // Close peer connections
     peerConnections.current.forEach(pc => pc.close());
