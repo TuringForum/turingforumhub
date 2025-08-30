@@ -40,6 +40,11 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
   const channel = useRef<any>(null);
   const isConnecting = useRef(false);
   const currentRoomId = useRef<string | null>(null);
+  const sessionIdRef = useRef<string>(
+    (globalThis.crypto && 'randomUUID' in globalThis.crypto)
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 
   const createPeerConnection = useCallback((peerId: string): RTCPeerConnection => {
     const pc = new RTCPeerConnection({
@@ -96,7 +101,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           payload: {
             candidate: event.candidate,
             to: peerId,
-            from: userId
+             from: sessionIdRef.current
           }
         });
       }
@@ -140,7 +145,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         .on('presence', { event: 'sync' }, () => {
           const state = channel.current.presenceState();
           const participantList = Object.values(state).flat() as Participant[];
-          setParticipants(participantList.filter(p => p.id !== userId));
+          setParticipants(participantList.filter(p => p.id !== sessionIdRef.current));
         })
         .on('presence', { event: 'join' }, ({ newPresences }) => {
           console.log('🔵 Participant joined:', newPresences);
@@ -148,7 +153,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           newPresences.forEach((presence: any) => {
             const participant = presence as Participant;
             console.log('🔵 Processing participant:', participant.id, 'vs current user:', userId);
-            if (participant.id !== userId && participant.id > userId) {
+            if (participant.id !== sessionIdRef.current && participant.id > sessionIdRef.current) {
               console.log('🔵 Creating offer for:', participant.id);
               // Only create offer if our ID is "smaller" to avoid race conditions
               const pc = createPeerConnection(participant.id);
@@ -170,7 +175,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                   payload: {
                     offer: pc.localDescription,
                     to: participant.id,
-                    from: userId
+                     from: sessionIdRef.current
                   }
                 });
               }).catch(err => {
@@ -198,7 +203,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           });
         })
         .on('broadcast', { event: 'offer' }, ({ payload }) => {
-          if (payload.to === userId) {
+           if (payload.to === sessionIdRef.current) {
             console.log('🟢 Received offer from', payload.from);
             const pc = createPeerConnection(payload.from);
             
@@ -221,7 +226,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                   payload: {
                     answer: pc.localDescription,
                     to: payload.from,
-                    from: userId
+                     from: sessionIdRef.current
                   }
                 });
               })
@@ -231,7 +236,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           }
         })
         .on('broadcast', { event: 'answer' }, ({ payload }) => {
-          if (payload.to === userId) {
+           if (payload.to === sessionIdRef.current) {
             console.log('Received answer from', payload.from);
             const pc = peerConnections.current.get(payload.from);
             if (pc) {
@@ -240,7 +245,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           }
         })
         .on('broadcast', { event: 'ice-candidate' }, ({ payload }) => {
-          if (payload.to === userId) {
+          if (payload.to === sessionIdRef.current) {
             console.log('Received ICE candidate from', payload.from);
             const pc = peerConnections.current.get(payload.from);
             if (pc) {
@@ -253,8 +258,8 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
 
       // Track presence
       await channel.current.track({
-        id: userId,
-        name: 'User ' + userId.substring(0, 8),
+         id: sessionIdRef.current,
+         name: 'User ' + (userId ? userId.substring(0, 8) : sessionIdRef.current.substring(0, 8)),
         isVideoEnabled: true,
         isAudioEnabled: true
       });
@@ -320,7 +325,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         // Update presence
         if (channel.current) {
           channel.current.track({
-            id: userId,
+            id: sessionIdRef.current,
             name: 'User ' + userId.substring(0, 8),
             isVideoEnabled: videoTrack.enabled,
             isAudioEnabled
@@ -340,7 +345,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         // Update presence
         if (channel.current) {
           channel.current.track({
-            id: userId,
+            id: sessionIdRef.current,
             name: 'User ' + userId.substring(0, 8),
             isVideoEnabled,
             isAudioEnabled: audioTrack.enabled
@@ -437,7 +442,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         channel.send(JSON.stringify({
           type: 'chat',
           message,
-          from: userId,
+          from: sessionIdRef.current,
         }));
       }
     });
