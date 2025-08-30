@@ -7,6 +7,7 @@ import { useWebRTC } from '@/hooks/useWebRTC';
 import { VideoControls } from './VideoControls';
 import { ParticipantGrid } from './ParticipantGrid';
 import { ScreenShareView } from './ScreenShareView';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { 
   Video, 
   Users,
@@ -170,22 +171,40 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
       
       <CardContent className="p-4 h-full">
         <div className="h-full flex flex-col">
-          {/* Screen Share View */}
-          {screenShare && (
-            <div className="flex-1 mb-4">
-              <ScreenShareView stream={screenShare} />
-            </div>
-          )}
-          
-          {/* Participants Grid */}
-          <div className={`${screenShare ? 'h-32' : 'flex-1'} mb-4`}>
-            <ParticipantGrid
-              localStream={localStream}
-              remoteStreams={remoteStreams}
-              participants={participants}
-              isVideoEnabled={isVideoEnabled}
-              currentUserId={user?.id || ''}
-            />
+          {/* Main Content Area with Resizable Panels */}
+          <div className="flex-1 mb-4">
+            {screenShare ? (
+              <ResizablePanelGroup direction="vertical" className="h-full">
+                {/* Screen Share Panel */}
+                <ResizablePanel defaultSize={70} minSize={30}>
+                  <ScreenShareView stream={screenShare} />
+                </ResizablePanel>
+                
+                <ResizableHandle withHandle />
+                
+                {/* Participants Panel */}
+                <ResizablePanel defaultSize={30} minSize={20}>
+                  <div className="h-full">
+                    <ParticipantGrid
+                      localStream={localStream}
+                      remoteStreams={remoteStreams}
+                      participants={participants}
+                      isVideoEnabled={isVideoEnabled}
+                      currentUserId={user?.id || ''}
+                    />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            ) : (
+              /* Full Participants Grid when no screen share */
+              <ParticipantGrid
+                localStream={localStream}
+                remoteStreams={remoteStreams}
+                participants={participants}
+                isVideoEnabled={isVideoEnabled}
+                currentUserId={user?.id || ''}
+              />
+            )}
           </div>
           
           {/* Screen Share Notification */}
