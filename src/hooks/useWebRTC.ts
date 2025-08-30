@@ -427,6 +427,24 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
             }
           }
         });
+
+        // Renegotiate after stopping screen share
+        pc.createOffer()
+          .then(offer => pc.setLocalDescription(offer))
+          .then(() => {
+            if (channel.current) {
+              channel.current.send({
+                type: 'broadcast',
+                event: 'offer',
+                payload: {
+                  offer: pc.localDescription,
+                  to: peerId,
+                  from: sessionIdRef.current,
+                },
+              });
+            }
+          })
+          .catch(err => console.error('❌ Renegotiation error (stop share):', err));
       });
       
       setScreenShare(null);
@@ -474,6 +492,24 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
               // Add screen share track if no video track exists
               pc.addTrack(screenVideoTrack, displayStream);
             }
+
+            // Force renegotiation so peers receive the new track
+            pc.createOffer()
+              .then(offer => pc.setLocalDescription(offer))
+              .then(() => {
+                if (channel.current) {
+                  channel.current.send({
+                    type: 'broadcast',
+                    event: 'offer',
+                    payload: {
+                      offer: pc.localDescription,
+                      to: peerId,
+                      from: sessionIdRef.current,
+                    },
+                  });
+                }
+              })
+              .catch(err => console.error('❌ Renegotiation error (start share):', err));
           });
         }
         
@@ -493,6 +529,24 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                   }
                 }
               });
+
+              // Renegotiate after user stops sharing via browser controls
+              pc.createOffer()
+                .then(offer => pc.setLocalDescription(offer))
+                .then(() => {
+                  if (channel.current) {
+                    channel.current.send({
+                      type: 'broadcast',
+                      event: 'offer',
+                      payload: {
+                        offer: pc.localDescription,
+                        to: peerId,
+                        from: sessionIdRef.current,
+                      },
+                    });
+                  }
+                })
+                .catch(err => console.error('❌ Renegotiation error (ended share):', err));
             });
             
             setScreenShare(null);

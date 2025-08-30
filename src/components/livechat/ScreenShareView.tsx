@@ -20,7 +20,7 @@ export const ScreenShareView = ({ stream }: ScreenShareViewProps) => {
   }, [stream]);
 
   return (
-    <Card className="h-full border-primary/20">
+    <Card className="h-full border-primary/20" aria-label="Screen share view">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center justify-between">
           <div className="flex items-center">
