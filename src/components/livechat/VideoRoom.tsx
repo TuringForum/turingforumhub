@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useWebRTC } from '@/hooks/useWebRTC';
+import { useScreenShareWindow } from '@/hooks/useScreenShareWindow';
 import { VideoControls } from './VideoControls';
 import { ParticipantGrid } from './ParticipantGrid';
-import { ScreenShareView } from './ScreenShareView';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { 
   Video, 
   Users,
@@ -45,7 +44,22 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
     sendMessage
   } = useWebRTC(roomId || '', user?.id || '');
 
+  const { openScreenShareWindow, closeScreenShareWindow } = useScreenShareWindow();
   const hasConnected = useRef(false);
+
+  // Handle screen share window
+  useEffect(() => {
+    if (screenShare && isScreenSharing) {
+      openScreenShareWindow(screenShare, () => {
+        // When window is closed, stop screen sharing
+        if (isScreenSharing) {
+          toggleScreenShare();
+        }
+      });
+    } else if (!screenShare && !isScreenSharing) {
+      closeScreenShareWindow();
+    }
+  }, [screenShare, isScreenSharing]);
 
   useEffect(() => {
     if (roomId && user?.id && !hasConnected.current) {
@@ -59,6 +73,7 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
         console.log('Cleaning up video room');
         hasConnected.current = false;
         handleDisconnect();
+        closeScreenShareWindow();
       }
     };
   }, [roomId, user?.id]);
@@ -171,40 +186,15 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
       
       <CardContent className="p-4 h-full">
         <div className="h-full flex flex-col">
-          {/* Main Content Area with Resizable Panels */}
+          {/* Participants Grid */}
           <div className="flex-1 mb-4">
-            {screenShare ? (
-              <ResizablePanelGroup direction="vertical" className="h-full">
-                {/* Screen Share Panel */}
-                <ResizablePanel defaultSize={70} minSize={30}>
-                  <ScreenShareView stream={screenShare} />
-                </ResizablePanel>
-                
-                <ResizableHandle withHandle />
-                
-                {/* Participants Panel */}
-                <ResizablePanel defaultSize={30} minSize={20}>
-                  <div className="h-full">
-                    <ParticipantGrid
-                      localStream={localStream}
-                      remoteStreams={remoteStreams}
-                      participants={participants}
-                      isVideoEnabled={isVideoEnabled}
-                      currentUserId={user?.id || ''}
-                    />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            ) : (
-              /* Full Participants Grid when no screen share */
-              <ParticipantGrid
-                localStream={localStream}
-                remoteStreams={remoteStreams}
-                participants={participants}
-                isVideoEnabled={isVideoEnabled}
-                currentUserId={user?.id || ''}
-              />
-            )}
+            <ParticipantGrid
+              localStream={localStream}
+              remoteStreams={remoteStreams}
+              participants={participants}
+              isVideoEnabled={isVideoEnabled}
+              currentUserId={user?.id || ''}
+            />
           </div>
           
           {/* Screen Share Notification */}
@@ -212,7 +202,7 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
             <div className="mb-2 p-2 bg-primary/10 border border-primary/20 rounded-lg">
               <p className="text-sm text-center text-primary flex items-center justify-center">
                 <Monitor className="w-4 h-4 mr-2" />
-                You are sharing your screen with all participants
+                Screen sharing in separate window - Close the popup to stop sharing
               </p>
             </div>
           )}
