@@ -38,6 +38,8 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const dataChannels = useRef<Map<string, RTCDataChannel>>(new Map());
   const channel = useRef<any>(null);
+  const isConnecting = useRef(false);
+  const currentRoomId = useRef<string | null>(null);
 
   const createPeerConnection = useCallback((peerId: string): RTCPeerConnection => {
     const pc = new RTCPeerConnection({
@@ -117,6 +119,13 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
   }, [userId]);
 
   const connect = async () => {
+    if (isConnecting.current || !roomId || !userId || currentRoomId.current === roomId) {
+      return;
+    }
+    
+    isConnecting.current = true;
+    currentRoomId.current = roomId;
+    
     try {
       // Get user media
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -262,10 +271,15 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         variant: 'destructive',
       });
       throw error;
+    } finally {
+      isConnecting.current = false;
     }
   };
 
   const disconnect = async () => {
+    isConnecting.current = false;
+    currentRoomId.current = null;
+    
     // Stop all tracks
     localStream?.getTracks().forEach(track => track.stop());
     screenShare?.getTracks().forEach(track => track.stop());

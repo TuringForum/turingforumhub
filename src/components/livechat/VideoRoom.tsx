@@ -42,17 +42,23 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
     toggleAudio,
     toggleScreenShare,
     sendMessage
-  } = useWebRTC(roomId, user?.id || '');
+  } = useWebRTC(roomId || '', user?.id || '');
+
+  const hasConnected = useRef(false);
 
   useEffect(() => {
-    if (roomId && user?.id) {
+    if (roomId && user?.id && !hasConnected.current) {
       console.log('Starting connection to room:', roomId);
+      hasConnected.current = true;
       handleConnect();
     }
     
     return () => {
-      console.log('Cleaning up video room');
-      handleDisconnect();
+      if (hasConnected.current) {
+        console.log('Cleaning up video room');
+        hasConnected.current = false;
+        handleDisconnect();
+      }
     };
   }, [roomId, user?.id]);
 
