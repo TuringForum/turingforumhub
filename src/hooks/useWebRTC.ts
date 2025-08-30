@@ -75,10 +75,12 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
 
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log('Received remote stream from', peerId, event.streams[0]);
+      console.log('🎥 Received remote stream from', peerId, event.streams[0]);
+      console.log('🎥 Stream tracks:', event.streams[0].getTracks());
       setRemoteStreams(prev => {
         const updated = new Map(prev);
         updated.set(peerId, event.streams[0]);
+        console.log('🎥 Updated remote streams map:', updated);
         return updated;
       });
     };
@@ -132,15 +134,18 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
           setParticipants(participantList.filter(p => p.id !== userId));
         })
         .on('presence', { event: 'join' }, ({ newPresences }) => {
-          console.log('Participant joined:', newPresences);
+          console.log('🔵 Participant joined:', newPresences);
           // Create peer connections for new participants (only if we joined first)
           newPresences.forEach((presence: any) => {
             const participant = presence as Participant;
+            console.log('🔵 Processing participant:', participant.id, 'vs current user:', userId);
             if (participant.id !== userId && participant.id > userId) {
+              console.log('🔵 Creating offer for:', participant.id);
               // Only create offer if our ID is "smaller" to avoid race conditions
               const pc = createPeerConnection(participant.id);
               
               // Add local stream to peer connection
+              console.log('🔵 Adding local tracks:', stream.getTracks());
               stream.getTracks().forEach(track => {
                 pc.addTrack(track, stream);
               });
@@ -149,6 +154,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
               pc.createOffer().then(offer => {
                 return pc.setLocalDescription(offer);
               }).then(() => {
+                console.log('🔵 Sending offer to:', participant.id);
                 channel.current.send({
                   type: 'broadcast',
                   event: 'offer',
@@ -159,8 +165,10 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                   }
                 });
               }).catch(err => {
-                console.error('Error creating offer:', err);
+                console.error('❌ Error creating offer:', err);
               });
+            } else {
+              console.log('🔵 Not creating offer for:', participant.id, '(same user or wrong order)');
             }
           });
         })
@@ -182,10 +190,11 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
         })
         .on('broadcast', { event: 'offer' }, ({ payload }) => {
           if (payload.to === userId) {
-            console.log('Received offer from', payload.from);
+            console.log('🟢 Received offer from', payload.from);
             const pc = createPeerConnection(payload.from);
             
             // Add local stream to peer connection
+            console.log('🟢 Adding local tracks to answer:', stream.getTracks());
             stream.getTracks().forEach(track => {
               pc.addTrack(track, stream);
             });
@@ -196,6 +205,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                 return pc.setLocalDescription(answer);
               })
               .then(() => {
+                console.log('🟢 Sending answer to:', payload.from);
                 channel.current.send({
                   type: 'broadcast',
                   event: 'answer',
@@ -207,7 +217,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
                 });
               })
               .catch(err => {
-                console.error('Error handling offer:', err);
+                console.error('❌ Error handling offer:', err);
               });
           }
         })

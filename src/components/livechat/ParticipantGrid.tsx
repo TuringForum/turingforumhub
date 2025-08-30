@@ -30,6 +30,13 @@ export const ParticipantGrid = ({
 }: ParticipantGridProps) => {
   const { profile } = useProfile();
   
+  console.log('🎬 ParticipantGrid render:', {
+    localStream: !!localStream,
+    remoteStreamsCount: remoteStreams.size,
+    participantsCount: participants.length,
+    remoteStreamKeys: Array.from(remoteStreams.keys())
+  });
+  
   const getGridCols = (participantCount: number) => {
     if (participantCount <= 1) return 'grid-cols-1';
     if (participantCount <= 2) return 'grid-cols-2';
