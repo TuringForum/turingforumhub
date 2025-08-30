@@ -319,6 +319,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
   };
 
   const toggleVideo = useCallback(() => {
+    console.log('🎥 toggleVideo called');
     if (localStream) {
       const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
@@ -340,6 +341,7 @@ export const useWebRTC = (roomId: string, userId: string): WebRTCHook => {
   }, [localStream, isAudioEnabled, userId, profile]);
 
   const toggleAudio = useCallback(() => {
+    console.log('🎤 toggleAudio called');
     if (localStream) {
       const audioTrack = localStream.getAudioTracks()[0];
       if (audioTrack) {
