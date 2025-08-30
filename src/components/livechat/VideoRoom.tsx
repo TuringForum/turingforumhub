@@ -11,7 +11,10 @@ import {
   Video, 
   Users,
   PhoneOff,
-  Monitor
+  Monitor,
+  Mic,
+  VideoOff,
+  MicOff
 } from 'lucide-react';
 
 interface VideoRoomProps {
@@ -107,6 +110,34 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
             </div>
           </div>
         <div className="flex items-center space-x-2">
+          <Button
+            onClick={toggleAudio}
+            variant={isAudioEnabled ? "default" : "destructive"}
+            size="sm"
+            disabled={!isConnected}
+            title={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
+          >
+            {isAudioEnabled ? (
+              <Mic className="w-4 h-4 mr-2" />
+            ) : (
+              <MicOff className="w-4 h-4 mr-2" />
+            )}
+            {isAudioEnabled ? 'Mic On' : 'Mic Off'}
+          </Button>
+          <Button
+            onClick={toggleVideo}
+            variant={isVideoEnabled ? "default" : "destructive"}
+            size="sm"
+            disabled={!isConnected}
+            title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+          >
+            {isVideoEnabled ? (
+              <Video className="w-4 h-4 mr-2" />
+            ) : (
+              <VideoOff className="w-4 h-4 mr-2" />
+            )}
+            {isVideoEnabled ? 'Cam On' : 'Cam Off'}
+          </Button>
           <Button
             onClick={toggleScreenShare}
             variant={isScreenSharing ? "secondary" : "outline"}
