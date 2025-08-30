@@ -116,6 +116,7 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
             size="sm"
             disabled={!isConnected}
             title={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
+            className={isAudioEnabled ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
           >
             {isAudioEnabled ? (
               <Mic className="w-4 h-4 mr-2" />
@@ -130,6 +131,7 @@ export const VideoRoom = ({ roomId, roomName, onLeave }: VideoRoomProps) => {
             size="sm"
             disabled={!isConnected}
             title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+            className={isVideoEnabled ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
           >
             {isVideoEnabled ? (
               <Video className="w-4 h-4 mr-2" />
