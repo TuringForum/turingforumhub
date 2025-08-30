@@ -75,14 +75,6 @@ const LiveChat = () => {
         <div className="container mx-auto p-6">
           {/* Room Control Panel */}
           <div className="flex items-center justify-end space-x-4 mb-6">
-            <Button
-              onClick={() => setShowChat(!showChat)}
-              variant="outline"
-              size="sm"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {showChat ? 'Hide Chat' : 'Show Chat'}
-            </Button>
             {!activeRoom && (
               <Button
                 onClick={() => setShowCreateDialog(true)}
@@ -152,12 +144,25 @@ const LiveChat = () => {
             </div>
 
             {/* Chat Sidebar */}
-            {showChat && (
+            {showChat ? (
               <div className="lg:col-span-1">
                 <ChatSidebar 
                   roomId={activeRoom}
                   roomName={activeRoomData?.name}
+                  onToggleChat={() => setShowChat(false)}
                 />
+              </div>
+            ) : activeRoom && (
+              <div className="fixed bottom-4 right-4 z-50">
+                <Button
+                  onClick={() => setShowChat(true)}
+                  variant="outline"
+                  size="sm"
+                  className="shadow-lg"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Show Chat
+                </Button>
               </div>
             )}
           </div>

@@ -7,15 +7,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveChatMessages } from '@/hooks/useLiveChatMessages';
-import { MessageCircle, Send, Users } from 'lucide-react';
+import { MessageCircle, Send, Users, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ChatSidebarProps {
   roomId: string | null;
   roomName?: string;
+  onToggleChat?: () => void;
 }
 
-export const ChatSidebar = ({ roomId, roomName }: ChatSidebarProps) => {
+export const ChatSidebar = ({ roomId, roomName, onToggleChat }: ChatSidebarProps) => {
   const { user } = useAuth();
   const { messages, participants, sendMessage } = useLiveChatMessages(roomId);
   const [newMessage, setNewMessage] = useState('');
@@ -66,10 +67,22 @@ export const ChatSidebar = ({ roomId, roomName }: ChatSidebarProps) => {
             <MessageCircle className="w-5 h-5 mr-2" />
             Chat
           </div>
-          <Badge variant="outline">
-            <Users className="w-3 h-3 mr-1" />
-            {participants.length}
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline">
+              <Users className="w-3 h-3 mr-1" />
+              {participants.length}
+            </Badge>
+            {onToggleChat && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleChat}
+                title="Hide chat"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </CardTitle>
         {roomName && (
           <p className="text-sm text-muted-foreground">{roomName}</p>
