@@ -19,6 +19,20 @@ const LiveChat = () => {
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const autoJoinTried = useRef(false);
+
+  useEffect(() => {
+    if (autoJoinTried.current) return;
+    if (!activeRoom) {
+      if (rooms.length > 0) {
+        autoJoinTried.current = true;
+        handleJoinRoom(rooms[0].id);
+      } else {
+        autoJoinTried.current = true;
+        handleCreateRoom('General', 'Default room', true);
+      }
+    }
+  }, [rooms, activeRoom]);
 
   const handleJoinRoom = async (roomId: string) => {
     console.log('Attempting to join room:', roomId);
