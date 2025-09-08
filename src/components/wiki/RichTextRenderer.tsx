@@ -32,7 +32,19 @@ export function RichTextRenderer({ content }: RichTextRendererProps) {
     
     if (wikiLink) {
       e.preventDefault();
+      e.stopPropagation();
       navigate(`/wiki/${wikiLink}`);
+      return;
+    }
+
+    // Also handle regular anchor tags that might be wiki links
+    if (target.tagName === 'A') {
+      const href = target.getAttribute('href');
+      if (href && href.startsWith('/wiki/')) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(href);
+      }
     }
   };
 
