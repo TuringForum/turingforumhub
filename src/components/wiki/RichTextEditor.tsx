@@ -12,6 +12,7 @@ import {
   Undo, 
   Redo,
   Link as LinkIcon,
+  Link2Off,
   Heading1,
   Heading2,
   Heading3,
@@ -229,6 +230,16 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           >
             <LinkIcon className="h-4 w-4" />
           </Button>
+          {editor.isActive('link') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editor.chain().focus().unsetLink().run()}
+              className="text-destructive hover:text-destructive"
+            >
+              <Link2Off className="h-4 w-4" />
+            </Button>
+          )}
           <Popover open={wikiLinkOpen} onOpenChange={setWikiLinkOpen}>
             <PopoverTrigger asChild>
               <Button
