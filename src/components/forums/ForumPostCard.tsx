@@ -1,16 +1,30 @@
 import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Pin, Clock, User, Lock } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { MessageSquare, Pin, Clock, User, Lock, MoreVertical, Trash2, Edit } from 'lucide-react';
 import { ForumPost } from '@/hooks/useForumPosts';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ForumPostCardProps {
   post: ForumPost;
   onClick?: () => void;
+  onEdit?: (post: ForumPost) => void;
+  onDelete?: (post: ForumPost) => void;
 }
 
-export function ForumPostCard({ post, onClick }: ForumPostCardProps) {
+export function ForumPostCard({ post, onClick, onEdit, onDelete }: ForumPostCardProps) {
+  const { user, role } = useAuth();
+  const isAuthor = user?.id === post.created_by;
+  const canDelete = isAuthor || role === 'admin';
+
   const getInitials = (nickname: string | null) => {
     if (!nickname) return 'U';
     return nickname
@@ -89,6 +103,39 @@ export function ForumPostCard({ post, onClick }: ForumPostCardProps) {
               </div>
             </div>
           </div>
+          
+          {canDelete && (onEdit || onDelete) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-32">
+                {isAuthor && onEdit && (
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(post);
+                  }}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {canDelete && onDelete && (
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(post);
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -3,9 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useForumPosts } from '@/hooks/useForumPosts';
+import { useForumPosts, useDeleteForumPost, ForumPost } from '@/hooks/useForumPosts';
 import { CreatePostDialog } from '@/components/forums/CreatePostDialog';
 import { ForumPostCard } from '@/components/forums/ForumPostCard';
 import { ForumCategoryList } from '@/components/forums/ForumCategoryList';
@@ -14,8 +24,22 @@ const Forums = () => {
   const { role } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<ForumPost | null>(null);
   
   const { data: posts, isLoading: postsLoading } = useForumPosts(selectedCategory);
+  const deletePost = useDeleteForumPost();
+
+  const handleDeletePost = async () => {
+    if (!postToDelete) return;
+    try {
+      await deletePost.mutateAsync(postToDelete.id);
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+    setDeleteDialogOpen(false);
+    setPostToDelete(null);
+  };
 
   return (
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
@@ -74,6 +98,10 @@ const Forums = () => {
                   key={post.id} 
                   post={post}
                   onClick={() => navigate(`/forums/post/${post.id}`)}
+                  onDelete={(post) => {
+                    setPostToDelete(post);
+                    setDeleteDialogOpen(true);
+                  }}
                 />
               ))
             ) : (
@@ -104,6 +132,27 @@ const Forums = () => {
             )}
           </div>
         </div>
+
+        {/* Delete Post Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Post</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{postToDelete?.title}"? This action cannot be undone and will also delete all replies.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeletePost}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Post
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </RoleGuard>
   );

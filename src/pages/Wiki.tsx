@@ -4,9 +4,19 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { BookOpen, Search, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useWikiPages } from '@/hooks/useWikiPages';
+import { useWikiPages, useDeleteWikiPage, WikiPage } from '@/hooks/useWikiPages';
 import { CreatePageDialog } from '@/components/wiki/CreatePageDialog';
 import { WikiPageCard } from '@/components/wiki/WikiPageCard';
 import { WikiCategoryList } from '@/components/wiki/WikiCategoryList';
@@ -16,8 +26,22 @@ const Wiki = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>();
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState<WikiPage | null>(null);
   
   const { data: pages, isLoading: pagesLoading } = useWikiPages(selectedCategory, searchQuery);
+  const deletePage = useDeleteWikiPage();
+
+  const handleDeletePage = async () => {
+    if (!pageToDelete) return;
+    try {
+      await deletePage.mutateAsync(pageToDelete.id);
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+    setDeleteDialogOpen(false);
+    setPageToDelete(null);
+  };
   return (
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
       <div className="container mx-auto p-6">
@@ -76,6 +100,10 @@ const Wiki = () => {
                     key={page.id} 
                     page={page}
                     onClick={() => navigate(`/wiki/${page.slug}`)}
+                    onDelete={(page) => {
+                      setPageToDelete(page);
+                      setDeleteDialogOpen(true);
+                    }}
                   />
                 ))}
               </div>
@@ -119,6 +147,27 @@ const Wiki = () => {
             )}
           </div>
         </div>
+
+        {/* Delete Page Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Wiki Page</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{pageToDelete?.title}"? This action cannot be undone and will also delete all revisions.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeletePage}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Page
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </RoleGuard>
   );

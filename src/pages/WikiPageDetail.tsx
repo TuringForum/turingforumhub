@@ -6,9 +6,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Eye, Calendar, Edit, FileText, User } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { ArrowLeft, Eye, Calendar, Edit, FileText, User, MoreVertical, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useWikiPage } from '@/hooks/useWikiPages';
+import { useWikiPage, useDeleteWikiPage } from '@/hooks/useWikiPages';
 import { RichTextRenderer } from '@/components/wiki/RichTextRenderer';
 import { EditPageDialog } from '@/components/wiki/EditPageDialog';
 
@@ -17,8 +33,10 @@ const WikiPageDetail = () => {
   const navigate = useNavigate();
   const { user, role } = useAuth();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data: page, isLoading, error } = useWikiPage(slug!);
+  const deletePage = useDeleteWikiPage();
 
   const getInitials = (nickname: string | null) => {
     if (!nickname) return 'U';
@@ -34,6 +52,22 @@ const WikiPageDetail = () => {
     page.created_by === user.id || 
     role === 'admin'
   );
+  
+  const canDelete = user && page && (
+    page.created_by === user.id || 
+    role === 'admin'
+  );
+
+  const handleDeletePage = async () => {
+    if (!page) return;
+    try {
+      await deletePage.mutateAsync(page.id);
+      navigate('/wiki');
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+    setDeleteDialogOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -69,12 +103,33 @@ const WikiPageDetail = () => {
             Back to Wiki
           </Button>
           
-          {canEdit && (
-            <Button onClick={() => setEditDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Page
-            </Button>
-          )}
+          <div className="flex items-center space-x-2">
+            {canEdit && (
+              <Button onClick={() => setEditDialogOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Page
+              </Button>
+            )}
+            
+            {canDelete && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                  <DropdownMenuItem 
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Page
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {/* Page Header */}
@@ -168,6 +223,27 @@ const WikiPageDetail = () => {
             onOpenChange={setEditDialogOpen}
           />
         )}
+
+        {/* Delete Page Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Wiki Page</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{page?.title}"? This action cannot be undone and will also delete all revisions.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeletePage}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Page
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </RoleGuard>
   );

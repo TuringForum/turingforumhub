@@ -2,25 +2,72 @@ import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Eye, Calendar } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { FileText, Eye, Calendar, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { WikiPage } from '@/hooks/useWikiPages';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WikiPageCardProps {
   page: WikiPage;
   onClick?: () => void;
+  onEdit?: (page: WikiPage) => void;
+  onDelete?: (page: WikiPage) => void;
 }
 
-export function WikiPageCard({ page, onClick }: WikiPageCardProps) {
+export function WikiPageCard({ page, onClick, onEdit, onDelete }: WikiPageCardProps) {
+  const { user, role } = useAuth();
+  const isAuthor = user?.id === page.created_by;
+  const canDelete = isAuthor || role === 'admin';
   return (
     <Card 
       className="enhanced-card hover:shadow-lg transition-all duration-300 cursor-pointer group h-full" 
       onClick={onClick}
     >
       <CardHeader>
-        <CardTitle className="flex items-center text-lg group-hover:text-primary transition-colors">
-          <FileText className="mr-2 h-5 w-5" />
-          {page.title}
-        </CardTitle>
+        <div className="flex items-start justify-between">
+          <CardTitle className="flex items-center text-lg group-hover:text-primary transition-colors">
+            <FileText className="mr-2 h-5 w-5" />
+            {page.title}
+          </CardTitle>
+          
+          {canDelete && (onEdit || onDelete) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-32">
+                {isAuthor && onEdit && (
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(page);
+                  }}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {canDelete && onDelete && (
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(page);
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
         <CardDescription className="line-clamp-2">
           {page.excerpt || page.content.substring(0, 150) + '...'}
         </CardDescription>

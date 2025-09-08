@@ -7,20 +7,41 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MessageSquare, Pin, Lock, User, Send } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { ArrowLeft, MessageSquare, Pin, Lock, User, Send, MoreVertical, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useForumPost } from '@/hooks/useForumPosts';
-import { useForumReplies, useCreateForumReply } from '@/hooks/useForumReplies';
+import { useForumPost, useDeleteForumPost } from '@/hooks/useForumPosts';
+import { useForumReplies, useCreateForumReply, useDeleteForumReply } from '@/hooks/useForumReplies';
 
 const PostDetail = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const { role } = useAuth();
+  const { user, role } = useAuth();
   const [replyContent, setReplyContent] = useState('');
+  const [deletePostDialogOpen, setDeletePostDialogOpen] = useState(false);
+  const [deleteReplyDialogOpen, setDeleteReplyDialogOpen] = useState(false);
+  const [selectedReplyId, setSelectedReplyId] = useState<string | null>(null);
 
   const { data: post, isLoading: postLoading } = useForumPost(postId!);
   const { data: replies, isLoading: repliesLoading } = useForumReplies(postId!);
   const createReply = useCreateForumReply();
+  const deletePost = useDeleteForumPost();
+  const deleteReply = useDeleteForumReply();
 
   const getInitials = (nickname: string | null) => {
     if (!nickname) return 'U';
@@ -46,6 +67,31 @@ const PostDetail = () => {
       // Error is handled by the mutation
     }
   };
+
+  const handleDeletePost = async () => {
+    if (!postId) return;
+    try {
+      await deletePost.mutateAsync(postId);
+      navigate('/forums');
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+    setDeletePostDialogOpen(false);
+  };
+
+  const handleDeleteReply = async () => {
+    if (!selectedReplyId) return;
+    try {
+      await deleteReply.mutateAsync(selectedReplyId);
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+    setDeleteReplyDialogOpen(false);
+    setSelectedReplyId(null);
+  };
+
+  const canEditPost = user && post && (post.created_by === user.id || role === 'admin');
+  const canDeletePost = user && post && (post.created_by === user.id || role === 'admin');
 
   if (postLoading) {
     return (
@@ -74,11 +120,30 @@ const PostDetail = () => {
   return (
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
       <div className="container mx-auto p-6 max-w-4xl">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Button variant="outline" onClick={() => navigate('/forums')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Forums
           </Button>
+          
+          {canDeletePost && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-32">
+                <DropdownMenuItem 
+                  onClick={() => setDeletePostDialogOpen(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Post
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* Main Post */}
@@ -222,6 +287,28 @@ const PostDetail = () => {
                           </p>
                         </div>
                       </div>
+                      
+                      {user && (reply.created_by === user.id || role === 'admin') && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setSelectedReplyId(reply.id);
+                                setDeleteReplyDialogOpen(true);
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -229,6 +316,48 @@ const PostDetail = () => {
             </div>
           )}
         </div>
+
+        {/* Delete Post Dialog */}
+        <AlertDialog open={deletePostDialogOpen} onOpenChange={setDeletePostDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Post</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this post? This action cannot be undone and will also delete all replies.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeletePost}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Post
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Reply Dialog */}
+        <AlertDialog open={deleteReplyDialogOpen} onOpenChange={setDeleteReplyDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Reply</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this reply? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteReply}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Reply
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </RoleGuard>
   );
