@@ -24,7 +24,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
-  const [currentInput, setCurrentInput] = useState(initialPrompt);
+  const [currentInput, setCurrentInput] = useState(
+    task === 'improve' && context ? 
+      `Please improve and refine this text:\n\n${context}` : 
+      initialPrompt
+  );
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -152,7 +156,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 placeholder={
                   task === 'summarize' ? "Paste content to summarize..." :
                   task === 'generate' ? "Describe what you'd like me to generate..." :
-                  task === 'improve' ? "Paste text to improve..." :
+                  task === 'improve' ? "Edit the text above to tell me how to improve it..." :
                   "Ask me anything..."
                 }
                 className="flex-1 min-h-[80px] resize-none"
