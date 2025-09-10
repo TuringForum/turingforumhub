@@ -189,8 +189,10 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       // Generate AI content for the new page using Supabase edge function
       const response = await supabase.functions.invoke('ai-chat', {
         body: {
-          prompt: `explain ${title}`,
-          task: 'explain'
+          messages: [
+            { role: 'user', content: `Explain "${title}" as a clear, structured wiki article with headings, bullet points, and examples where relevant.` }
+          ],
+          task: 'generate'
         }
       });
 
@@ -198,7 +200,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         throw new Error(response.error.message || 'Failed to generate AI content');
       }
 
-      const aiContent = response.data?.response;
+      const aiContent = response.data?.response || response.data?.generatedText || response.data?.text;
       
       // Generate slug from title
       const slug = title
