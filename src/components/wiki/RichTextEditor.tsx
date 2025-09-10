@@ -306,8 +306,11 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             task="improve"
             context={editor.getText()}
             onResult={(result) => {
+              // Insert the AI-generated text, replacing the current content
               editor.commands.setContent(result);
               onChange(result);
+              // Focus back to the editor
+              editor.commands.focus();
             }}
           />
         </div>

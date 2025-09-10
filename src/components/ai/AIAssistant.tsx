@@ -58,11 +58,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       // If onResult callback is provided, call it with the AI response
       if (onResult) {
         onResult(data.response);
+        // Don't close the dialog automatically - let user decide
       }
 
       toast({
         title: "AI Response Generated",
-        description: "The AI has provided a response to your request.",
+        description: "The AI has provided a response. Click 'Cancel' to close or continue the conversation.",
       });
     } catch (error) {
       console.error('AI chat error:', error);
