@@ -162,17 +162,25 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 className="flex-1 min-h-[80px] resize-none"
                 disabled={loading}
               />
-              <Button 
-                onClick={sendMessage} 
-                disabled={!currentInput.trim() || loading}
-                className="self-end"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Send"
-                )}
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  onClick={sendMessage} 
+                  disabled={!currentInput.trim() || loading}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Send"
+                  )}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         </div>
