@@ -407,7 +407,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       </div>
       <EditorContent 
         editor={editor}
-        className="prose prose-sm max-w-none p-4 min-h-[200px] focus-within:outline-none"
+        className="text-sm whitespace-pre-wrap text-foreground p-4 min-h-[200px] focus-within:outline-none"
         placeholder={placeholder}
       />
     </div>
