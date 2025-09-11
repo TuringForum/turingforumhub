@@ -52,7 +52,7 @@ export function RichTextRenderer({ content }: RichTextRendererProps) {
 
   return (
     <div 
-      className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-blockquote:text-muted-foreground prose-blockquote:border-l-border prose-code:text-foreground prose-code:bg-muted prose-pre:bg-muted prose-pre:text-foreground prose-li:text-foreground prose-a:text-primary hover:prose-a:text-primary/80"
+      className="text-sm whitespace-pre-wrap text-foreground"
       dangerouslySetInnerHTML={{ __html: processedContent }}
       onClick={handleClick}
     />
