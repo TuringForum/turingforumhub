@@ -29,6 +29,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       `Please improve and refine this text:\n\n${context}` : 
       initialPrompt
   );
+  const [aiResponse, setAiResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -54,16 +55,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
       const assistantMessage = { role: 'assistant' as const, content: data.response };
       setMessages([...newMessages, assistantMessage]);
+      setAiResponse(data.response);
       
-      // If onResult callback is provided, call it with the AI response
-      if (onResult) {
-        onResult(data.response);
-        // Don't close the dialog automatically - let user decide
-      }
-
       toast({
-        title: "AI Response Generated",
-        description: "The AI has provided a response. Click 'Cancel' to close or continue the conversation.",
+        title: "AI Response Ready",
+        description: "Click 'Use' to insert the response into your content.",
       });
     } catch (error) {
       console.error('AI chat error:', error);
@@ -80,7 +76,18 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      if (aiResponse) {
+        handleUseResponse();
+      } else {
+        sendMessage();
+      }
+    }
+  };
+
+  const handleUseResponse = () => {
+    if (aiResponse && onResult) {
+      onResult(aiResponse);
+      setOpen(false);
     }
   };
 
@@ -113,10 +120,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           {/* Large textarea filling most of the space */}
           <div className="flex-1 p-4">
             <Textarea
-              value={currentInput}
+              value={aiResponse || currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={
+                loading ? "Working..." :
                 task === 'summarize' ? "Paste content to summarize..." :
                 task === 'generate' ? "Describe what you'd like me to generate..." :
                 task === 'improve' ? "Edit the text above to tell me how to improve it..." :
@@ -138,11 +146,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 Cancel
               </Button>
               <Button 
-                onClick={sendMessage} 
-                disabled={!currentInput.trim() || loading}
+                onClick={aiResponse ? handleUseResponse : sendMessage} 
+                disabled={(!currentInput.trim() && !aiResponse) || loading}
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
+                ) : aiResponse ? (
+                  "Use"
                 ) : (
                   "Send"
                 )}
