@@ -110,78 +110,43 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         </DialogHeader>
         
         <div className="flex flex-col h-[500px]">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 && (
-              <div className="text-center text-muted-foreground">
-                <Bot className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>How can I help you today?</p>
-                {task === 'summarize' && <p className="text-sm">I can help summarize content for you.</p>}
-                {task === 'generate' && <p className="text-sm">I can help generate content based on your needs.</p>}
-                {task === 'improve' && <p className="text-sm">I can help improve and refine your text.</p>}
-              </div>
-            )}
-            
-            {messages.map((message, index) => (
-              <Card key={index} className={message.role === 'user' ? 'ml-12' : 'mr-12'}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-2">
-                    {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 text-primary" />}
-                    <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {loading && (
-              <Card className="mr-12">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">AI is thinking...</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+          {/* Large textarea filling most of the space */}
+          <div className="flex-1 p-4">
+            <Textarea
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={
+                task === 'summarize' ? "Paste content to summarize..." :
+                task === 'generate' ? "Describe what you'd like me to generate..." :
+                task === 'improve' ? "Edit the text above to tell me how to improve it..." :
+                "Ask me anything..."
+              }
+              className="w-full h-full resize-none"
+              disabled={loading}
+            />
           </div>
           
-          {/* Input */}
+          {/* Buttons at the bottom */}
           <div className="p-4 border-t">
-            <div className="flex gap-2">
-              <Textarea
-                value={currentInput}
-                onChange={(e) => setCurrentInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  task === 'summarize' ? "Paste content to summarize..." :
-                  task === 'generate' ? "Describe what you'd like me to generate..." :
-                  task === 'improve' ? "Edit the text above to tell me how to improve it..." :
-                  "Ask me anything..."
-                }
-                className="flex-1 min-h-[80px] resize-none"
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline"
+                onClick={() => setOpen(false)}
                 disabled={loading}
-              />
-              <div className="flex flex-col gap-2">
-                <Button 
-                  onClick={sendMessage} 
-                  disabled={!currentInput.trim() || loading}
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Send"
-                  )}
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-              </div>
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={sendMessage} 
+                disabled={!currentInput.trim() || loading}
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Send"
+                )}
+              </Button>
             </div>
           </div>
         </div>
