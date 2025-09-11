@@ -190,7 +190,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       const response = await supabase.functions.invoke('ai-chat', {
         body: {
           messages: [
-            { role: 'user', content: `Explain "${title}" as a clear, structured wiki article with headings, bullet points, and examples where relevant.` }
+            { role: 'user', content: `Explain "${title}" as a clear, structured wiki article. Format your response as HTML with proper heading tags (h1, h2, h3), paragraph tags (p), unordered lists (ul/li), and other HTML formatting. Include headings, bullet points, and examples where relevant. Do not include html, head, or body tags - just the content HTML.` }
           ],
           task: 'generate'
         }
