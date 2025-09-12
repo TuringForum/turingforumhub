@@ -136,7 +136,7 @@ export function CreatePageDialog() {
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
                 placeholder="Brief description of the article..."
-                className="min-h-[60px]"
+                className="text-sm whitespace-pre-wrap text-foreground min-h-[60px]"
               />
             </div>
             <div className="space-y-2">
