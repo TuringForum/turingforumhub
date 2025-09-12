@@ -68,7 +68,7 @@ export function WikiPageCard({ page, onClick, onEdit, onDelete }: WikiPageCardPr
             </DropdownMenu>
           )}
         </div>
-        <CardDescription className="line-clamp-2">
+        <CardDescription className="line-clamp-2 text-sm whitespace-pre-wrap text-muted-foreground">
           {page.excerpt || page.content.substring(0, 150) + '...'}
         </CardDescription>
       </CardHeader>

@@ -158,7 +158,7 @@ const WikiPageDetail = () => {
 
               {/* Excerpt */}
               {page.excerpt && (
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <p className="text-sm whitespace-pre-wrap text-muted-foreground leading-relaxed">
                   {page.excerpt}
                 </p>
               )}
