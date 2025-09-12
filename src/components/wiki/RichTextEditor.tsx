@@ -182,13 +182,18 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       return;
     }
 
+    // Store the current selection range for later linking
+    const selectionFrom = editor.state.selection.from;
+    const selectionTo = editor.state.selection.to;
+    const hasSelection = !editor.state.selection.empty;
+
     // Use the first available category as default
     const defaultCategory = categories[0];
     
     // Show immediate feedback that the process has started
     toast({
       title: "Creating AI Wiki Page",
-      description: `Generating content for "${title}" in background...`,
+      description: `Generating content for "${title}" and creating link...`,
     });
 
     // Create the page in the background without blocking the UI
@@ -224,9 +229,19 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           is_published: true,
         });
 
+        // Create link to the new page in the editor if text was selected
+        if (hasSelection) {
+          const href = `/wiki/${slug}`;
+          editor.chain()
+            .focus()
+            .setTextSelection({ from: selectionFrom, to: selectionTo })
+            .setLink({ href })
+            .run();
+        }
+
         toast({
-          title: "AI Wiki Page Created",
-          description: `Successfully created "${title}" in the background. Continue editing!`,
+          title: "AI Wiki Page Created & Linked",
+          description: `Successfully created "${title}" and linked to it from your text.`,
         });
       } catch (error) {
         console.error('Error creating AI wiki page:', error);
