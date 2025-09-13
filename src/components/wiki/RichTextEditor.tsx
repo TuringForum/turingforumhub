@@ -52,7 +52,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false, // Disable StarterKit's Link extension to avoid duplicates
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -162,6 +164,8 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       ? editor.getText().trim() 
       : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to).trim();
     
+    console.log('Selected text:', selectedText);
+    
     if (!selectedText) {
       toast({
         title: "No text selected",
@@ -172,6 +176,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     }
 
     const title = selectedText.substring(0, 100); // Limit title length
+    console.log('Page title:', title);
     
     if (!categories || categories.length === 0) {
       toast({
@@ -190,6 +195,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
 
     // Use the first available category as default
     const defaultCategory = categories[0];
+    console.log('Using category:', defaultCategory);
     
     // Show immediate feedback that the process has started
     toast({
@@ -198,6 +204,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     });
 
     try {
+      console.log('Calling AI function...');
       // Generate AI content for the new page using Supabase edge function
       const response = await supabase.functions.invoke('ai-chat', {
         body: {
@@ -208,17 +215,22 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         }
       });
 
+      console.log('AI response:', response);
+
       if (response.error) {
         throw new Error(response.error.message || 'Failed to generate AI content');
       }
 
       const aiContent = response.data?.response || response.data?.generatedText || response.data?.text;
+      console.log('AI content:', aiContent);
       
       // Generate slug from title
       const slug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
+
+      console.log('Creating page with slug:', slug);
 
       // Create the wiki page and wait for completion
       await createPage.mutateAsync({
@@ -228,6 +240,8 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         category_id: defaultCategory.id,
         is_published: true,
       });
+
+      console.log('Page created successfully, now linking...');
 
       // Create link to the new page in the current editor
       if (editor && !editor.isDestroyed) {
@@ -248,6 +262,8 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             .insertContent(title)
             .run();
         }
+        
+        console.log('Link created successfully');
       }
 
       toast({
