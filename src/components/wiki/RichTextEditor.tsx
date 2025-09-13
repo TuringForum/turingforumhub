@@ -228,14 +228,18 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         is_published: true,
       });
 
-      // Only create link after page is successfully created
-      if (hasSelection) {
+      // Only create link after page is successfully created and editor is still available
+      if (hasSelection && editor && !editor.isDestroyed) {
         const href = `/wiki/${slug}`;
-        editor.chain()
-          .focus()
-          .setTextSelection({ from: selectionFrom, to: selectionTo })
-          .setLink({ href })
-          .run();
+        try {
+          editor.chain()
+            .focus()
+            .setTextSelection({ from: selectionFrom, to: selectionTo })
+            .setLink({ href })
+            .run();
+        } catch (editorError) {
+          console.log('Editor no longer available for linking, but page was created successfully');
+        }
       }
 
       toast({
