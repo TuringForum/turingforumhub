@@ -182,10 +182,11 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       return;
     }
 
-    // Store the current selection range for later linking
+    // Store the current selection for linking after page creation
     const selectionFrom = editor.state.selection.from;
     const selectionTo = editor.state.selection.to;
     const hasSelection = !editor.state.selection.empty;
+    const selectedTextForLink = hasSelection ? selectedText : title;
 
     // Use the first available category as default
     const defaultCategory = categories[0];
@@ -219,7 +220,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
 
-      // Wait for the page to be created successfully
+      // Create the wiki page and wait for completion
       await createPage.mutateAsync({
         title,
         slug,
@@ -228,23 +229,30 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         is_published: true,
       });
 
-      // Only create link after page is successfully created and editor is still available
-      if (hasSelection && editor && !editor.isDestroyed) {
+      // Create link to the new page in the current editor
+      if (editor && !editor.isDestroyed) {
         const href = `/wiki/${slug}`;
-        try {
+        
+        if (hasSelection) {
+          // Replace selected text with a link
           editor.chain()
             .focus()
             .setTextSelection({ from: selectionFrom, to: selectionTo })
             .setLink({ href })
             .run();
-        } catch (editorError) {
-          console.log('Editor no longer available for linking, but page was created successfully');
+        } else {
+          // Insert link at current cursor position
+          editor.chain()
+            .focus()
+            .setLink({ href })
+            .insertContent(title)
+            .run();
         }
       }
 
       toast({
         title: "AI Wiki Page Created & Linked",
-        description: `Successfully created "${title}"${hasSelection ? ' and linked to it from your text' : ''}.`,
+        description: `Successfully created "${title}" and linked to it in your article.`,
       });
     } catch (error) {
       console.error('Error creating AI wiki page:', error);
