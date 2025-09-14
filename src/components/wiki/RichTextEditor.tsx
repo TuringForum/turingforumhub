@@ -258,6 +258,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       <div className="flex flex-wrap gap-1 p-2 border-b border-input justify-between">
         <div className="flex flex-wrap gap-1">
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -266,6 +267,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             <Bold className="h-4 w-4" />
           </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleItalic().run()}
@@ -274,6 +276,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <Italic className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -282,6 +285,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <Heading1 className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -290,6 +294,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <Heading2 className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
@@ -298,6 +303,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <Heading3 className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -306,6 +312,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <List className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
@@ -314,6 +321,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <ListOrdered className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -322,6 +330,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <Quote className="h-4 w-4" />
         </Button>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={setLink}
@@ -331,6 +340,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           </Button>
           {editor.isActive('link') && (
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => editor.chain().focus().unsetLink().run()}
@@ -342,6 +352,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           <Popover open={wikiLinkOpen} onOpenChange={setWikiLinkOpen}>
             <PopoverTrigger asChild>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="gap-1"
@@ -377,6 +388,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             </PopoverContent>
           </Popover>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().undo().run()}
@@ -385,6 +397,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             <Undo className="h-4 w-4" />
           </Button>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => editor.chain().focus().redo().run()}
@@ -397,7 +410,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         <div className="flex gap-1">
           <AIAssistant
             trigger={
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button type="button" variant="outline" size="sm" className="gap-2">
                 <Sparkles className="h-4 w-4" />
                 AI Help
               </Button>
@@ -413,6 +426,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             }}
           />
           <Button 
+            type="button"
             variant="outline" 
             size="sm" 
             className="gap-2"
