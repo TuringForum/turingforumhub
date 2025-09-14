@@ -260,7 +260,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         // Find and replace the loading indicator with the link
         const currentContent = editor.getHTML();
         const updatedContent = currentContent.replace(
-          /<span[^>]*>⏳ Creating[^<]*<\/span>/g,
+          /<span[^>]*style="[^"]*"[^>]*>⏳ Creating[^<]*<\/span>/g,
           linkHTML
         );
         
@@ -288,7 +288,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       if (editor && !editor.isDestroyed) {
         const currentContent = editor.getHTML();
         const updatedContent = currentContent.replace(
-          /<span[^>]*>⏳ Creating[^<]*<\/span>/g,
+          /<span[^>]*style="[^"]*"[^>]*>⏳ Creating[^<]*<\/span>/g,
           selectedText || title
         );
         
