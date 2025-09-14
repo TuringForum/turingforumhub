@@ -174,7 +174,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       return;
     }
 
-    const title = selectedText.substring(0, 100); // Limit title length
+    const title = selectedText.substring(0, 100);
     
     if (!categories || categories.length === 0) {
       toast({
@@ -185,40 +185,10 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       return;
     }
 
-    // Store current selection details BEFORE async operations
     const hasSelection = !editor.state.selection.empty;
-    const selectionFrom = editor.state.selection.from;
-    const selectionTo = editor.state.selection.to;
-    
-    // Use the first available category as default
     const defaultCategory = categories[0];
     
     setIsCreatingAIPage(true);
-    
-    // Add visual loading indicator to the editor
-    const loadingContent = hasSelection 
-      ? `<span style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">⏳ Creating "${selectedText}"...</span>`
-      : `<span style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">⏳ Creating "${title}"...</span>`;
-    
-    // Insert loading indicator
-    if (hasSelection) {
-      editor.chain()
-        .focus()
-        .setTextSelection({ from: selectionFrom, to: selectionTo })
-        .insertContent(loadingContent)
-        .run();
-    } else {
-      editor.chain()
-        .focus()
-        .insertContent(loadingContent)
-        .run();
-    }
-    
-    // Show toast feedback
-    toast({
-      title: "Creating AI Wiki Page",
-      description: `Generating content for "${title}"...`,
-    });
 
     try {
       // Generate AI content for the new page using Supabase edge function
@@ -243,7 +213,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
 
-      // Create the wiki page and wait for completion
+      // Create the wiki page
       await createPage.mutateAsync({
         title,
         slug,
@@ -252,51 +222,22 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         is_published: true,
       });
 
-      // Replace loading indicator with actual link
-      if (editor && !editor.isDestroyed) {
-        const href = `/wiki/${slug}`;
-        const linkHTML = `<a href="${href}" class="text-primary underline hover:text-primary/80">${selectedText}</a>`;
-        
-        // Find and replace the loading indicator with the link
-        const currentContent = editor.getHTML();
-        const updatedContent = currentContent.replace(
-          /<span[^>]*style="[^"]*"[^>]*>⏳ Creating[^<]*<\/span>/g,
-          linkHTML
-        );
-        
-        editor.chain()
-          .focus()
-          .setContent(updatedContent)
-          .run();
-        
-        // Ensure editor stays focused and in edit mode
-        setTimeout(() => {
-          if (editor && !editor.isDestroyed) {
-            editor.commands.focus('end');
-          }
-        }, 100);
+      // Create and insert the link
+      const href = `/wiki/${slug}`;
+      const linkHTML = `<a href="${href}" class="text-primary underline hover:text-primary/80">${selectedText}</a>`;
+      
+      if (hasSelection) {
+        editor.chain().focus().insertContent(linkHTML).run();
+      } else {
+        editor.chain().focus().insertContent(linkHTML + ' ').run();
       }
 
       toast({
         title: "AI Wiki Page Created & Linked",
-        description: `Successfully created "${title}" and linked to it in your article.`,
+        description: `Successfully created "${title}" and linked to it.`,
       });
     } catch (error) {
       console.error('Error creating AI wiki page:', error);
-      
-      // Remove loading indicator on error
-      if (editor && !editor.isDestroyed) {
-        const currentContent = editor.getHTML();
-        const updatedContent = currentContent.replace(
-          /<span[^>]*style="[^"]*"[^>]*>⏳ Creating[^<]*<\/span>/g,
-          selectedText || title
-        );
-        
-        editor.chain()
-          .focus()
-          .setContent(updatedContent)
-          .run();
-      }
       
       toast({
         title: "Failed to Create Wiki Page",
