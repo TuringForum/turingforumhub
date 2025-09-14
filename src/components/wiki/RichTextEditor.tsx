@@ -49,6 +49,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
   const { data: categories } = useWikiCategories();
   const createPage = useCreateWikiPage();
   const [wikiLinkOpen, setWikiLinkOpen] = useState(false);
+  const [isCreatingAIPage, setIsCreatingAIPage] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -158,13 +159,11 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
   }, [editor]);
 
   const handleCreateAIWikiPage = useCallback(async () => {
-    if (!editor) return;
+    if (!editor || isCreatingAIPage) return;
     
     const selectedText = editor.state.selection.empty 
       ? editor.getText().trim() 
       : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to).trim();
-    
-    console.log('Selected text:', selectedText);
     
     if (!selectedText) {
       toast({
@@ -176,7 +175,6 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     }
 
     const title = selectedText.substring(0, 100); // Limit title length
-    console.log('Page title:', title);
     
     if (!categories || categories.length === 0) {
       toast({
@@ -187,24 +185,42 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       return;
     }
 
-    // Store the current selection for linking after page creation
+    // Store current selection details BEFORE async operations
+    const hasSelection = !editor.state.selection.empty;
     const selectionFrom = editor.state.selection.from;
     const selectionTo = editor.state.selection.to;
-    const hasSelection = !editor.state.selection.empty;
-    const selectedTextForLink = hasSelection ? selectedText : title;
-
+    
     // Use the first available category as default
     const defaultCategory = categories[0];
-    console.log('Using category:', defaultCategory);
     
-    // Show immediate feedback that the process has started
+    setIsCreatingAIPage(true);
+    
+    // Add visual loading indicator to the editor
+    const loadingContent = hasSelection 
+      ? `<span style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">⏳ Creating "${selectedText}"...</span>`
+      : `<span style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">⏳ Creating "${title}"...</span>`;
+    
+    // Insert loading indicator
+    if (hasSelection) {
+      editor.chain()
+        .focus()
+        .setTextSelection({ from: selectionFrom, to: selectionTo })
+        .insertContent(loadingContent)
+        .run();
+    } else {
+      editor.chain()
+        .focus()
+        .insertContent(loadingContent)
+        .run();
+    }
+    
+    // Show toast feedback
     toast({
       title: "Creating AI Wiki Page",
       description: `Generating content for "${title}"...`,
     });
 
     try {
-      console.log('Calling AI function...');
       // Generate AI content for the new page using Supabase edge function
       const response = await supabase.functions.invoke('ai-chat', {
         body: {
@@ -215,22 +231,17 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         }
       });
 
-      console.log('AI response:', response);
-
       if (response.error) {
         throw new Error(response.error.message || 'Failed to generate AI content');
       }
 
       const aiContent = response.data?.response || response.data?.generatedText || response.data?.text;
-      console.log('AI content:', aiContent);
       
       // Generate slug from title
       const slug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
-
-      console.log('Creating page with slug:', slug);
 
       // Create the wiki page and wait for completion
       await createPage.mutateAsync({
@@ -241,29 +252,29 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         is_published: true,
       });
 
-      console.log('Page created successfully, now linking...');
-
-      // Create link to the new page in the current editor
+      // Replace loading indicator with actual link
       if (editor && !editor.isDestroyed) {
         const href = `/wiki/${slug}`;
+        const linkHTML = `<a href="${href}" class="text-primary underline hover:text-primary/80 bg-primary/10 px-1 py-0.5 rounded">${selectedText}</a>`;
         
-        if (hasSelection) {
-          // Replace selected text with a link
-          editor.chain()
-            .focus()
-            .setTextSelection({ from: selectionFrom, to: selectionTo })
-            .setLink({ href })
-            .run();
-        } else {
-          // Insert link at current cursor position
-          editor.chain()
-            .focus()
-            .setLink({ href })
-            .insertContent(title)
-            .run();
-        }
+        // Find and replace the loading indicator with the link
+        const currentContent = editor.getHTML();
+        const updatedContent = currentContent.replace(
+          /<span[^>]*>⏳ Creating[^<]*<\/span>/g,
+          linkHTML
+        );
         
-        console.log('Link created successfully');
+        editor.chain()
+          .focus()
+          .setContent(updatedContent)
+          .run();
+        
+        // Ensure editor stays focused and in edit mode
+        setTimeout(() => {
+          if (editor && !editor.isDestroyed) {
+            editor.commands.focus('end');
+          }
+        }, 100);
       }
 
       toast({
@@ -272,13 +283,30 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       });
     } catch (error) {
       console.error('Error creating AI wiki page:', error);
+      
+      // Remove loading indicator on error
+      if (editor && !editor.isDestroyed) {
+        const currentContent = editor.getHTML();
+        const updatedContent = currentContent.replace(
+          /<span[^>]*>⏳ Creating[^<]*<\/span>/g,
+          selectedText || title
+        );
+        
+        editor.chain()
+          .focus()
+          .setContent(updatedContent)
+          .run();
+      }
+      
       toast({
         title: "Failed to Create Wiki Page",
-        description: "Failed to create AI wiki page. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to create AI wiki page. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsCreatingAIPage(false);
     }
-  }, [editor, categories, createPage]);
+  }, [editor, categories, createPage, isCreatingAIPage]);
 
   if (!editor) {
     return null;
@@ -448,9 +476,10 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             size="sm" 
             className="gap-2"
             onClick={handleCreateAIWikiPage}
+            disabled={isCreatingAIPage}
           >
             <FileText className="h-4 w-4" />
-            Add AI Wiki Page
+            {isCreatingAIPage ? "Creating..." : "Add AI Wiki Page"}
           </Button>
         </div>
       </div>
