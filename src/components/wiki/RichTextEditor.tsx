@@ -255,7 +255,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       // Replace loading indicator with actual link
       if (editor && !editor.isDestroyed) {
         const href = `/wiki/${slug}`;
-        const linkHTML = `<a href="${href}" class="text-primary underline hover:text-primary/80 bg-primary/10 px-1 py-0.5 rounded">${selectedText}</a>`;
+        const linkHTML = `<a href="${href}" class="text-primary underline hover:text-primary/80">${selectedText}</a>`;
         
         // Find and replace the loading indicator with the link
         const currentContent = editor.getHTML();

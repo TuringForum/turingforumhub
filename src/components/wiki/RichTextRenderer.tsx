@@ -19,7 +19,7 @@ export function RichTextRenderer({ content }: RichTextRendererProps) {
       (match, pageSlug, pageTitle) => {
         const page = wikiPages.find(p => p.slug === pageSlug);
         if (page) {
-          return `<a href="/wiki/${pageSlug}" class="text-primary underline hover:text-primary/80 bg-primary/10 px-1 py-0.5 rounded" data-wiki-link="${pageSlug}">${pageTitle}</a>`;
+          return `<a href="/wiki/${pageSlug}" class="text-primary underline hover:text-primary/80" data-wiki-link="${pageSlug}">${pageTitle}</a>`;
         }
         return match;
       }
