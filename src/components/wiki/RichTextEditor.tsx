@@ -54,6 +54,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3, 4, 5, 6],
+        },
         link: false, // Disable StarterKit's Link extension to avoid duplicates
       }),
       Link.configure({
