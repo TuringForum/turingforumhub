@@ -282,7 +282,14 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          onClick={() => {
+            console.log('H1 button clicked, editor:', !!editor);
+            console.log('Editor isActive heading level 1:', editor.isActive('heading', { level: 1 }));
+            console.log('Editor can toggle heading:', editor.can().chain().focus().toggleHeading({ level: 1 }).run());
+            const result = editor.chain().focus().toggleHeading({ level: 1 }).run();
+            console.log('Toggle H1 result:', result);
+            console.log('After toggle, isActive:', editor.isActive('heading', { level: 1 }));
+          }}
           className={editor.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
         >
           <Heading1 className="h-4 w-4" />
@@ -291,7 +298,11 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={() => {
+            console.log('H2 button clicked');
+            const result = editor.chain().focus().toggleHeading({ level: 2 }).run();
+            console.log('Toggle H2 result:', result);
+          }}
           className={editor.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
         >
           <Heading2 className="h-4 w-4" />
