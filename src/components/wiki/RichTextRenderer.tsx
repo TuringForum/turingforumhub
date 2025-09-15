@@ -52,7 +52,13 @@ export function RichTextRenderer({ content }: RichTextRendererProps) {
 
   return (
     <div 
-      className="text-sm whitespace-pre-wrap text-foreground"
+      className="text-sm whitespace-pre-wrap text-foreground prose prose-sm max-w-none
+                 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-4
+                 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-5 [&_h2]:mb-3
+                 [&_h3]:text-xl [&_h3]:font-medium [&_h3]:mt-4 [&_h3]:mb-2
+                 [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6
+                 [&_blockquote]:border-l-4 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:italic
+                 [&_p]:mb-3 [&_li]:mb-1"
       dangerouslySetInnerHTML={{ __html: processedContent }}
       onClick={handleClick}
     />
