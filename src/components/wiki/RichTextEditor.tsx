@@ -56,6 +56,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
+          HTMLAttributes: {
+            class: 'tiptap-heading',
+          },
         },
         link: false, // Disable StarterKit's Link extension to avoid duplicates
       }),
@@ -135,7 +138,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
-  });
+  }, [content]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -282,14 +285,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => {
-            console.log('H1 button clicked, editor:', !!editor);
-            console.log('Editor isActive heading level 1:', editor.isActive('heading', { level: 1 }));
-            console.log('Editor can toggle heading:', editor.can().chain().focus().toggleHeading({ level: 1 }).run());
-            const result = editor.chain().focus().toggleHeading({ level: 1 }).run();
-            console.log('Toggle H1 result:', result);
-            console.log('After toggle, isActive:', editor.isActive('heading', { level: 1 }));
-          }}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           className={editor.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
         >
           <Heading1 className="h-4 w-4" />
@@ -298,11 +294,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => {
-            console.log('H2 button clicked');
-            const result = editor.chain().focus().toggleHeading({ level: 2 }).run();
-            console.log('Toggle H2 result:', result);
-          }}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={editor.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
         >
           <Heading2 className="h-4 w-4" />
