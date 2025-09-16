@@ -222,6 +222,18 @@
   }
 
   /* Editor content styling - for the editor itself */
+  .ProseMirror {
+    @apply text-sm text-foreground leading-relaxed;
+    min-height: 200px;
+    padding: 16px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+  }
+
+  .ProseMirror:focus {
+    @apply outline-none ring-2 ring-ring;
+  }
+
   .ProseMirror h1 {
     @apply text-3xl font-bold mt-6 mb-4 text-foreground !important;
   }
@@ -244,6 +256,34 @@
 
   .ProseMirror h6 {
     @apply text-sm font-medium mt-3 mb-2 text-foreground !important;
+  }
+
+  .ProseMirror p {
+    @apply mb-3 text-foreground leading-relaxed;
+  }
+
+  .ProseMirror ul {
+    @apply list-disc ml-6 mb-3;
+  }
+
+  .ProseMirror ol {
+    @apply list-decimal ml-6 mb-3;
+  }
+
+  .ProseMirror li {
+    @apply mb-1 text-foreground;
+  }
+
+  .ProseMirror blockquote {
+    @apply border-l-4 border-border pl-4 italic mb-3 text-muted-foreground;
+  }
+
+  .ProseMirror strong {
+    @apply font-bold text-foreground;
+  }
+
+  .ProseMirror em {
+    @apply italic text-foreground;
   }
 
   .wiki-content p {

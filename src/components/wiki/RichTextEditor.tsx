@@ -19,7 +19,7 @@ import {
   Sparkles,
   FileText
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useWikiPages, useCreateWikiPage } from '@/hooks/useWikiPages';
 import { useWikiCategories } from '@/hooks/useWikiCategories';
 import { AIAssistant } from '@/components/ai/AIAssistant';
@@ -56,9 +56,6 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3, 4, 5, 6],
-          HTMLAttributes: {
-            class: 'tiptap-heading',
-          },
         },
         link: false, // Disable StarterKit's Link extension to avoid duplicates
       }),
@@ -138,7 +135,19 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
-  }, [content]);
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl mx-auto focus:outline-none',
+      },
+    },
+  }, []);
+
+  // Sync editor content when prop changes
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content, { emitUpdate: false });
+    }
+  }, [editor, content]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
