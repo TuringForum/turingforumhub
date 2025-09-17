@@ -137,7 +137,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     },
     editorProps: {
       attributes: {
-        class: 'wiki-content focus:outline-none',
+        class: 'wiki-content focus:outline-none text-sm whitespace-pre-wrap text-foreground leading-relaxed',
       },
     },
   }, []);
@@ -455,7 +455,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       </div>
       <EditorContent 
         editor={editor}
-        className="p-4 min-h-[200px] focus-within:outline-none"
+        className="wiki-content p-4 min-h-[200px] focus-within:outline-none text-sm whitespace-pre-wrap text-foreground"
         placeholder={placeholder}
       />
     </div>
