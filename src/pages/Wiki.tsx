@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
   AlertDialog,
@@ -14,7 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BookOpen, Search, FileText } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { BookOpen, Search, FileText, Eye, Calendar, MoreVertical, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWikiPages, useDeleteWikiPage, WikiPage } from '@/hooks/useWikiPages';
 import { CreatePageDialog } from '@/components/wiki/CreatePageDialog';
@@ -22,7 +30,7 @@ import { WikiPageCard } from '@/components/wiki/WikiPageCard';
 import { WikiCategoryList } from '@/components/wiki/WikiCategoryList';
 
 const Wiki = () => {
-  const { role } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,33 +87,84 @@ const Wiki = () => {
 
           <div className="lg:col-span-3">
             {pagesLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        <div className="h-6 bg-muted rounded w-3/4"></div>
-                        <div className="h-4 bg-muted rounded w-full"></div>
-                        <div className="h-4 bg-muted rounded w-2/3"></div>
-                        <div className="h-8 bg-muted rounded w-full"></div>
+                  <div key={i} className="animate-pulse">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className="h-4 w-4 bg-muted rounded"></div>
+                        <div className="h-4 bg-muted rounded w-48"></div>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="flex items-center space-x-3">
+                        <div className="h-4 bg-muted rounded w-16"></div>
+                        <div className="h-4 bg-muted rounded w-20"></div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : pages && pages.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pages.map((page) => (
-                  <WikiPageCard 
-                    key={page.id} 
-                    page={page}
-                    onClick={() => navigate(`/wiki/${page.slug}`)}
-                    onDelete={(page) => {
-                      setPageToDelete(page);
-                      setDeleteDialogOpen(true);
-                    }}
-                  />
-                ))}
+              <div className="space-y-2">
+                {[...pages]
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((page) => (
+                    <div 
+                      key={page.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors group"
+                      onClick={() => navigate(`/wiki/${page.slug}`)}
+                    >
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium truncate group-hover:text-primary transition-colors">
+                          {page.title}
+                        </span>
+                        {page.category && (
+                          <Badge 
+                            variant="secondary"
+                            className="text-xs flex-shrink-0"
+                            style={{ 
+                              backgroundColor: page.category.color + '20', 
+                              color: page.category.color 
+                            }}
+                          >
+                            {page.category.name}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground flex-shrink-0">
+                        <span className="flex items-center">
+                          <Eye className="h-3 w-3 mr-1" />
+                          {page.view_count}
+                        </span>
+                        <span className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {formatDistanceToNow(new Date(page.updated_at))} ago
+                        </span>
+                        {((user?.id === page.created_by) || role === 'admin') && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-32">
+                              <DropdownMenuItem 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPageToDelete(page);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </div>
+                  ))}
               </div>
             ) : (
               <Card className="border-dashed border-2">
