@@ -222,11 +222,31 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
 
       const aiContent = response.data?.response || response.data?.generatedText || response.data?.text;
       
-      // Generate slug from title
-      const slug = title
+      // Generate unique slug from title
+      let baseSlug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
+
+      // Check for existing slugs and make unique
+      let slug = baseSlug;
+      let counter = 1;
+      
+      // Keep trying until we find a unique slug
+      while (true) {
+        const { data: existingPage } = await supabase
+          .from('wiki_pages')
+          .select('id')
+          .eq('slug', slug)
+          .maybeSingle();
+        
+        if (!existingPage) {
+          break; // Slug is unique
+        }
+        
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
 
       // Create the wiki page
       await createPage.mutateAsync({
