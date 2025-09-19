@@ -206,7 +206,45 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     setIsCreatingAIPage(true);
 
     try {
-      // Generate AI content for the new page using Supabase edge function
+      // Generate base slug from title
+      const baseSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+
+      // First check if a page with this slug already exists
+      const { data: existingPage } = await supabase
+        .from('wiki_pages')
+        .select('id, title, slug')
+        .eq('slug', baseSlug)
+        .maybeSingle();
+
+      let slug = baseSlug;
+      let pageTitle = title;
+
+      if (existingPage) {
+        // Page already exists, just link to it
+        slug = existingPage.slug;
+        pageTitle = existingPage.title;
+        
+        // Create and insert the link to existing page
+        const href = `/wiki/${slug}`;
+        const linkHTML = `<a href="${href}" class="text-primary underline hover:text-primary/80">${selectedText}</a>`;
+        
+        if (hasSelection) {
+          editor.chain().focus().insertContent(linkHTML).run();
+        } else {
+          editor.chain().focus().insertContent(linkHTML + ' ').run();
+        }
+
+        toast({
+          title: "Linked to Existing Page",
+          description: `Successfully linked to existing page "${pageTitle}".`,
+        });
+        return;
+      }
+
+      // Page doesn't exist, generate AI content and create new page
       const response = await supabase.functions.invoke('ai-chat', {
         body: {
           messages: [
@@ -221,32 +259,6 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       }
 
       const aiContent = response.data?.response || response.data?.generatedText || response.data?.text;
-      
-      // Generate unique slug from title
-      let baseSlug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-
-      // Check for existing slugs and make unique
-      let slug = baseSlug;
-      let counter = 1;
-      
-      // Keep trying until we find a unique slug
-      while (true) {
-        const { data: existingPage } = await supabase
-          .from('wiki_pages')
-          .select('id')
-          .eq('slug', slug)
-          .maybeSingle();
-        
-        if (!existingPage) {
-          break; // Slug is unique
-        }
-        
-        slug = `${baseSlug}-${counter}`;
-        counter++;
-      }
 
       // Create the wiki page
       await createPage.mutateAsync({
