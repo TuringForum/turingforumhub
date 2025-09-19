@@ -96,7 +96,7 @@ const WikiPageDetail = () => {
 
   return (
     <RoleGuard allowedRoles={['reader', 'contributor', 'admin']}>
-      <div className="container mx-auto p-6 max-w-4xl">
+      <div className="container mx-auto p-6 max-w-[95vw]">
         <div className="mb-6 flex items-center justify-between">
           <Button variant="outline" onClick={() => navigate('/wiki')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
