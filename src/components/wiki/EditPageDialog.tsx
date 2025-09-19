@@ -76,17 +76,17 @@ export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
+      <DialogContent className="max-w-[75vw] max-h-[90vh] overflow-y-auto bg-gray-700">
+        <form onSubmit={handleSubmit} className="text-white">
           <DialogHeader>
-            <DialogTitle>Edit Wiki Article</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Edit Wiki Article</DialogTitle>
+            <DialogDescription className="text-gray-300">
               Make changes to your wiki article.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-white">Category</Label>
               <Select value={categoryId} onValueChange={setCategoryId} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
@@ -101,7 +101,7 @@ export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title" className="text-white">Title</Label>
               <Input
                 id="title"
                 value={title}
@@ -111,7 +111,7 @@ export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">URL Slug</Label>
+              <Label htmlFor="slug" className="text-white">URL Slug</Label>
               <Input
                 id="slug"
                 value={slug}
@@ -121,7 +121,7 @@ export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="excerpt">Excerpt (Optional)</Label>
+              <Label htmlFor="excerpt" className="text-white">Excerpt (Optional)</Label>
               <Textarea
                 id="excerpt"
                 value={excerpt}
@@ -131,7 +131,7 @@ export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
+              <Label htmlFor="content" className="text-white">Content</Label>
               <RichTextEditor
                 content={content}
                 onChange={setContent}
@@ -144,7 +144,7 @@ export function EditPageDialog({ page, open, onOpenChange }: EditPageDialogProps
                 checked={isPublished}
                 onCheckedChange={setIsPublished}
               />
-              <Label htmlFor="published">Published</Label>
+              <Label htmlFor="published" className="text-white">Published</Label>
             </div>
           </div>
           <DialogFooter>
