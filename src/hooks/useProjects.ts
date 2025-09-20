@@ -41,15 +41,18 @@ export const useProjects = () => {
         return;
       }
 
-      // Get creator nicknames
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, nickname')
-        .in('user_id', projectsData.map(p => p.created_by));
-
+      // Get creator nicknames using secure function
+      const profileQueries = projectsData.map(p => 
+        supabase.rpc('get_user_basic_profile', { target_user_id: p.created_by })
+      );
+      
+      const profileResults = await Promise.all(profileQueries);
+      
       // Create a map of user_id to nickname
       const nicknameMap = new Map(
-        profilesData?.map(profile => [profile.user_id, profile.nickname]) || []
+        profileResults
+          .filter(result => result.data?.[0])
+          .map(result => [result.data[0].user_id, result.data[0].nickname])
       );
 
       // Combine the data
@@ -148,17 +151,16 @@ export const useProjects = () => {
         return { error: error.message };
       }
 
-      // Get creator nickname
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('nickname')
-        .eq('user_id', data.created_by)
-        .single();
+      // Get creator nickname using secure function
+      const { data: profiles } = await supabase
+        .rpc('get_user_basic_profile', { target_user_id: data.created_by });
+      
+      const profile = profiles?.[0];
 
       const updatedProject: Project = {
         ...data,
         status: data.status as 'draft' | 'active' | 'completed' | 'archived',
-        creator_nickname: profileData?.nickname || null,
+        creator_nickname: profile?.nickname || null,
       };
 
       setProjects((prev) =>
@@ -219,17 +221,16 @@ export const useProjects = () => {
         return { error: error.message };
       }
 
-      // Get creator nickname
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('nickname')
-        .eq('user_id', data.created_by)
-        .single();
+      // Get creator nickname using secure function
+      const { data: profiles } = await supabase
+        .rpc('get_user_basic_profile', { target_user_id: data.created_by });
+      
+      const profile = profiles?.[0];
 
       const projectWithCreator: Project = {
         ...data,
         status: data.status as 'draft' | 'active' | 'completed' | 'archived',
-        creator_nickname: profileData?.nickname || null,
+        creator_nickname: profile?.nickname || null,
       };
 
       return { data: projectWithCreator };

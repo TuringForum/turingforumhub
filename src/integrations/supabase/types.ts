@@ -532,6 +532,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_basic_profile: {
+        Args: { target_user_id: string }
+        Returns: {
+          avatar_url: string
+          nickname: string
+          user_id: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

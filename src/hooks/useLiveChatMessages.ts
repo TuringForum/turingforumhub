@@ -52,13 +52,12 @@ export const useLiveChatMessages = (roomId: string | null) => {
         async (payload) => {
           const rawMessage = payload.new as any;
           
-          // Fetch user profile for the new message
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nickname, avatar_url')
-            .eq('user_id', rawMessage.user_id)
-            .maybeSingle();
+          // Fetch user profile for the new message using secure function
+          const { data: profiles } = await supabase
+            .rpc('get_user_basic_profile', { target_user_id: rawMessage.user_id });
           
+          const profile = profiles?.[0];
+
           const newMessage: ChatMessage = {
             id: rawMessage.id,
             content: rawMessage.content,
@@ -111,14 +110,13 @@ export const useLiveChatMessages = (roomId: string | null) => {
 
       if (error) throw error;
 
-      // Fetch user profiles separately
+      // Fetch user profiles separately using secure function
       const messagesWithProfiles = await Promise.all(
         (data || []).map(async (msg: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nickname, avatar_url')
-            .eq('user_id', msg.user_id)
-            .maybeSingle();
+          const { data: profiles } = await supabase
+            .rpc('get_user_basic_profile', { target_user_id: msg.user_id });
+          
+          const profile = profiles?.[0];
           
           return {
             id: msg.id,
@@ -156,14 +154,13 @@ export const useLiveChatMessages = (roomId: string | null) => {
 
       if (error) throw error;
 
-      // Fetch user profiles separately
+      // Fetch user profiles separately using secure function
       const participantsWithProfiles = await Promise.all(
         (data || []).map(async (p: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nickname, avatar_url')
-            .eq('user_id', p.user_id)
-            .maybeSingle();
+          const { data: profiles } = await supabase
+            .rpc('get_user_basic_profile', { target_user_id: p.user_id });
+          
+          const profile = profiles?.[0];
           
           return {
             id: p.user_id,
