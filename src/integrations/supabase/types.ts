@@ -532,6 +532,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_all_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          nickname: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_user_basic_profile: {
         Args: { target_user_id: string }
         Returns: {

@@ -62,10 +62,9 @@ const AdminPanel = () => {
         return;
       }
 
-      // Get profiles data
+      // Get profiles data using secure admin function
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_id, nickname');
+        .rpc('admin_get_all_profiles');
 
       if (profileError) {
         console.error('Error fetching profiles:', profileError);
