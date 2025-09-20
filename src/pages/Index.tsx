@@ -97,21 +97,21 @@ const Index = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <Card className="enhanced-card group cursor-pointer transition-all duration-300 hover:scale-105" onClick={() => navigate('/projects')}>
+        <Card className="enhanced-card group cursor-pointer transition-all duration-300 hover:scale-105" onClick={() => navigate('/forums')}>
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4 shadow-glow group-hover:shadow-xl transition-all duration-300">
-                <BookOpen className="h-6 w-6 text-primary-foreground" />
+                <MessageSquare className="h-6 w-6 text-primary-foreground" />
               </div>
-              Projects
+              Forums
             </CardTitle>
             <CardDescription className="text-base">
-              Browse and manage development projects
+              Join discussions and conversations
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button className="w-full group-hover:bg-primary/90" variant="secondary">
-              View Projects
+              Join Discussions
             </Button>
           </CardContent>
         </Card>
@@ -135,21 +135,21 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card className="enhanced-card group cursor-pointer transition-all duration-300 hover:scale-105" onClick={() => navigate('/forums')}>
+        <Card className="enhanced-card group cursor-pointer transition-all duration-300 hover:scale-105" onClick={() => navigate('/projects')}>
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4 shadow-glow group-hover:shadow-xl transition-all duration-300">
-                <MessageSquare className="h-6 w-6 text-primary-foreground" />
+                <BookOpen className="h-6 w-6 text-primary-foreground" />
               </div>
-              Forums
+              Projects
             </CardTitle>
             <CardDescription className="text-base">
-              Join discussions and conversations
+              Browse and manage development projects
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button className="w-full group-hover:bg-primary/90" variant="secondary">
-              Join Discussions
+              View Projects
             </Button>
           </CardContent>
         </Card>
