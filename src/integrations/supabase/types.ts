@@ -103,6 +103,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          parent_id: string | null
           post_id: string
           updated_at: string
         }
@@ -111,6 +112,7 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          parent_id?: string | null
           post_id: string
           updated_at?: string
         }
@@ -119,10 +121,18 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          parent_id?: string | null
           post_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "forum_replies_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "forum_replies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "forum_replies_post_id_fkey"
             columns: ["post_id"]

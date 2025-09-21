@@ -6,6 +6,7 @@ export interface ForumReply {
   id: string;
   content: string;
   post_id: string;
+  parent_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -14,7 +15,36 @@ export interface ForumReply {
     nickname: string | null;
     avatar_url: string | null;
   };
+  replies?: ForumReply[];
 }
+
+// Helper function to build nested reply structure
+const buildNestedReplies = (replies: ForumReply[]): ForumReply[] => {
+  const replyMap = new Map<string, ForumReply>();
+  const rootReplies: ForumReply[] = [];
+
+  // Initialize all replies in the map
+  replies.forEach(reply => {
+    replyMap.set(reply.id, { ...reply, replies: [] });
+  });
+
+  // Build the nested structure
+  replies.forEach(reply => {
+    const replyWithChildren = replyMap.get(reply.id)!;
+    
+    if (reply.parent_id) {
+      const parent = replyMap.get(reply.parent_id);
+      if (parent) {
+        parent.replies = parent.replies || [];
+        parent.replies.push(replyWithChildren);
+      }
+    } else {
+      rootReplies.push(replyWithChildren);
+    }
+  });
+
+  return rootReplies;
+};
 
 export const useForumReplies = (postId: string) => {
   return useQuery({
@@ -33,7 +63,8 @@ export const useForumReplies = (postId: string) => {
         throw error;
       }
 
-      return data as ForumReply[];
+      const replies = data as ForumReply[];
+      return buildNestedReplies(replies);
     },
   });
 };
@@ -45,6 +76,7 @@ export const useCreateForumReply = () => {
     mutationFn: async (reply: {
       content: string;
       post_id: string;
+      parent_id?: string | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');

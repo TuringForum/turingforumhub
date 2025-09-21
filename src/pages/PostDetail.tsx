@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { ReplyCard } from '@/components/forums/ReplyCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +27,7 @@ import {
 import { ArrowLeft, MessageSquare, Pin, Lock, User, Send, MoreVertical, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useForumPost, useDeleteForumPost } from '@/hooks/useForumPosts';
-import { useForumReplies, useCreateForumReply, useDeleteForumReply } from '@/hooks/useForumReplies';
+import { useForumReplies, useCreateForumReply, useUpdateForumReply, useDeleteForumReply, ForumReply } from '@/hooks/useForumReplies';
 
 const PostDetail = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -40,6 +41,7 @@ const PostDetail = () => {
   const { data: post, isLoading: postLoading } = useForumPost(postId!);
   const { data: replies, isLoading: repliesLoading } = useForumReplies(postId!);
   const createReply = useCreateForumReply();
+  const updateReply = useUpdateForumReply();
   const deletePost = useDeleteForumPost();
   const deleteReply = useDeleteForumReply();
 
@@ -61,8 +63,34 @@ const PostDetail = () => {
       await createReply.mutateAsync({
         content: replyContent.trim(),
         post_id: postId,
+        parent_id: null, // Top-level reply
       });
       setReplyContent('');
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+  };
+
+  const handleNestedReply = async (parentId: string, content: string) => {
+    if (!postId) return;
+
+    try {
+      await createReply.mutateAsync({
+        content,
+        post_id: postId,
+        parent_id: parentId,
+      });
+    } catch (error) {
+      // Error is handled by the mutation
+    }
+  };
+
+  const handleEditReply = async (reply: ForumReply, content: string) => {
+    try {
+      await updateReply.mutateAsync({
+        id: reply.id,
+        content,
+      });
     } catch (error) {
       // Error is handled by the mutation
     }
@@ -261,57 +289,20 @@ const PostDetail = () => {
               ))}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {replies?.map((reply) => (
-                <Card key={reply.id} className="enhanced-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={reply.author?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                          {getInitials(reply.author?.nickname || null)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="font-medium">
-                            {reply.author?.nickname || 'Anonymous'}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(reply.created_at))} ago
-                          </span>
-                        </div>
-                        <div className="prose prose-sm max-w-none">
-                          <p className="text-foreground whitespace-pre-wrap">
-                            {reply.content}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {user && (reply.created_by === user.id || role === 'admin') && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32">
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                setSelectedReplyId(reply.id);
-                                setDeleteReplyDialogOpen(true);
-                              }}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                <ReplyCard
+                  key={reply.id}
+                  reply={reply}
+                  postId={postId!}
+                  onEdit={handleEditReply}
+                  onDelete={(replyId) => {
+                    setSelectedReplyId(replyId);
+                    setDeleteReplyDialogOpen(true);
+                  }}
+                  onReply={handleNestedReply}
+                  isLocked={post?.is_locked}
+                />
               ))}
             </div>
           )}
