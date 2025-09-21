@@ -2,7 +2,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, MessageSquare, Video } from 'lucide-react';
+import { Users, BookOpen, MessageSquare, Video, FolderOpen } from 'lucide-react';
 const Index = () => {
   const {
     user,
@@ -133,7 +133,7 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4 shadow-glow group-hover:shadow-xl transition-all duration-300">
-                <BookOpen className="h-6 w-6 text-primary-foreground" />
+                <FolderOpen className="h-6 w-6 text-primary-foreground" />
               </div>
               Projects
             </CardTitle>
