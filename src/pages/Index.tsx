@@ -49,9 +49,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="enhanced-card p-8 text-center animate-scale-in" style={{
-            animationDelay: '0.1s'
-          }}>
+            <div className="enhanced-card p-8 text-center animate-scale-in delay-100">
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
                 <Users className="h-8 w-8 text-primary-foreground" />
               </div>
@@ -61,9 +59,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="enhanced-card p-8 text-center animate-scale-in" style={{
-            animationDelay: '0.2s'
-          }}>
+            <div className="enhanced-card p-8 text-center animate-scale-in delay-200">
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
                 <MessageSquare className="h-8 w-8 text-primary-foreground" />
               </div>
@@ -73,9 +69,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="enhanced-card p-8 text-center animate-scale-in" style={{
-            animationDelay: '0.3s'
-          }}>
+            <div className="enhanced-card p-8 text-center animate-scale-in delay-300">
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
                 <Video className="h-8 w-8 text-primary-foreground" />
               </div>
