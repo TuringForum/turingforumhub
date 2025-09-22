@@ -52,9 +52,7 @@ export const useForumReplies = (postId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('forum_replies')
-        .select(`
-          *
-        `)
+        .select('*')
         .eq('post_id', postId)
         .order('created_at');
 
@@ -63,8 +61,27 @@ export const useForumReplies = (postId: string) => {
         throw error;
       }
 
-      const replies = data as ForumReply[];
-      return buildNestedReplies(replies);
+      // Fetch author data for all unique users
+      const userIds = [...new Set(data.map(reply => reply.created_by))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, nickname, avatar_url')
+        .in('user_id', userIds);
+
+      // Create a map of user profiles
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      // Combine replies with author data
+      const repliesWithAuthors = data.map(reply => ({
+        ...reply,
+        author: profileMap.get(reply.created_by) ? {
+          id: profileMap.get(reply.created_by)!.user_id,
+          nickname: profileMap.get(reply.created_by)!.nickname,
+          avatar_url: profileMap.get(reply.created_by)!.avatar_url
+        } : undefined
+      }));
+
+      return buildNestedReplies(repliesWithAuthors);
     },
   });
 };
