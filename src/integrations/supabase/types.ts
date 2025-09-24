@@ -134,24 +134,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "forum_replies_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "forum_replies_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "forum_replies_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "forum_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_replies_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "forum_posts_public"
             referencedColumns: ["id"]
           },
         ]
@@ -186,13 +172,6 @@ export type Database = {
             referencedRelation: "livechat_rooms"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "livechat_messages_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "livechat_rooms_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       livechat_participants: {
@@ -220,13 +199,6 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "livechat_rooms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "livechat_participants_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "livechat_rooms_public"
             referencedColumns: ["id"]
           },
         ]
@@ -507,13 +479,6 @@ export type Database = {
             referencedRelation: "wiki_pages"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "wiki_page_revisions_page_id_fkey"
-            columns: ["page_id"]
-            isOneToOne: false
-            referencedRelation: "wiki_pages_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       wiki_pages: {
@@ -574,124 +539,7 @@ export type Database = {
       }
     }
     Views: {
-      forum_posts_public: {
-        Row: {
-          author_nickname: string | null
-          category_id: string | null
-          content: string | null
-          created_at: string | null
-          id: string | null
-          is_locked: boolean | null
-          is_pinned: boolean | null
-          last_reply_at: string | null
-          last_reply_author_nickname: string | null
-          reply_count: number | null
-          title: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "forum_posts_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "forum_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      forum_replies_public: {
-        Row: {
-          author_nickname: string | null
-          content: string | null
-          created_at: string | null
-          id: string | null
-          parent_id: string | null
-          post_id: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "forum_replies_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "forum_replies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_replies_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "forum_replies_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_replies_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "forum_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "forum_replies_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "forum_posts_public"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      livechat_rooms_public: {
-        Row: {
-          created_at: string | null
-          creator_nickname: string | null
-          description: string | null
-          id: string | null
-          is_active: boolean | null
-          name: string | null
-        }
-        Relationships: []
-      }
-      projects_public: {
-        Row: {
-          author_nickname: string | null
-          content: string | null
-          created_at: string | null
-          demo_url: string | null
-          description: string | null
-          id: string | null
-          repository_url: string | null
-          status: string | null
-          tags: string[] | null
-          title: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      wiki_pages_public: {
-        Row: {
-          author_nickname: string | null
-          category_id: string | null
-          content: string | null
-          created_at: string | null
-          excerpt: string | null
-          id: string | null
-          last_updated_by_nickname: string | null
-          slug: string | null
-          title: string | null
-          updated_at: string | null
-          version: number | null
-          view_count: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wiki_pages_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "wiki_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_get_all_profiles: {
@@ -705,11 +553,84 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_public_forum_posts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          author_nickname: string
+          category_id: string
+          content: string
+          created_at: string
+          id: string
+          is_locked: boolean
+          is_pinned: boolean
+          last_reply_at: string
+          last_reply_author_nickname: string
+          reply_count: number
+          title: string
+          updated_at: string
+        }[]
+      }
+      get_public_forum_replies: {
+        Args: { target_post_id: string }
+        Returns: {
+          author_nickname: string
+          content: string
+          created_at: string
+          id: string
+          parent_id: string
+          post_id: string
+          updated_at: string
+        }[]
+      }
+      get_public_livechat_rooms: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          creator_nickname: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+        }[]
+      }
       get_public_profile_info: {
         Args: { target_user_id: string }
         Returns: {
           avatar_url: string
           nickname: string
+        }[]
+      }
+      get_public_projects: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          author_nickname: string
+          content: string
+          created_at: string
+          demo_url: string
+          description: string
+          id: string
+          repository_url: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }[]
+      }
+      get_public_wiki_pages: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          author_nickname: string
+          category_id: string
+          content: string
+          created_at: string
+          excerpt: string
+          id: string
+          last_updated_by_nickname: string
+          slug: string
+          title: string
+          updated_at: string
+          version: number
+          view_count: number
         }[]
       }
       get_user_basic_profile: {
