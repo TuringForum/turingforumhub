@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
+import Placeholder from '@tiptap/extension-placeholder';
 import { Button } from '@/components/ui/button';
 import { 
   Bold, 
@@ -64,6 +65,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         HTMLAttributes: {
           class: 'text-primary underline hover:text-primary/80',
         },
+      }),
+      Placeholder.configure({
+        placeholder: placeholder || 'Start typing your content...',
       }),
       Mention.configure({
         HTMLAttributes: {
@@ -140,7 +144,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         class: 'wiki-content focus:outline-none text-sm whitespace-pre-wrap text-foreground leading-relaxed',
       },
     },
-  }, []);
+  }, [placeholder]);
 
   // Sync editor content when prop changes
   useEffect(() => {
@@ -488,7 +492,6 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       <EditorContent 
         editor={editor}
         className="wiki-content p-4 min-h-[200px] focus-within:outline-none text-sm whitespace-pre-wrap text-foreground"
-        placeholder={placeholder}
       />
     </div>
   );
